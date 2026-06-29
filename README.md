@@ -1,0 +1,2 @@
+# yutagame-frontend
+Yutagameのフロントエンドのリソース
