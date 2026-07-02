@@ -1,16 +1,38 @@
-# Fresh project
+# YUTAGAME Frontend (Deno + Fresh)
 
-Your new Fresh project is ready to go. You can follow the Fresh "Getting
-Started" guide here: https://fresh.deno.dev/docs/getting-started
+ゲーム在庫管理システム（YUTAGAME）のフロントエンド（管理画面・一般画面）です。
 
-### Usage
+## 🛠️ 技術スタック
 
-Make sure to install Deno: https://deno.land/manual/getting_started/installation
+- **実行環境**: Deno 2.x
+- **フレームワーク**: Fresh (Preact)
+- **状態管理**: Preact Signals (`useSignal`)
+- **CSS**: Tailwind CSS
 
-Then start the project:
+## ⚙️ 重要なアーキテクチャ・設計思想
 
-```
+### 1. アイランド（Islands）アーキテクチャの役割分担
+
+Freshは「画面の表示を極限まで速くする」ため、デフォルトではJavaScriptを含まない静的なHTMLをサーバー側で生成します（サーバーコンポーネント：`routes/`）。
+ボタンのクリックや入力の検知など、ブラウザ側でJavaScriptの動作が必要な部分**だけ**を「島」として切り出して実装します（アイランドコンポーネント：`islands/`）。
+
+### 2. Cookie ＋ ミドルウェア（一括関所）による認証ガード
+
+全ページでログインチェックを共通化し、かつ安全性を高めるために以下の設計を採用しています。
+
+- **保存先**: `localStorage` ではなく、ブラウザによって保護されセキュリティの高い `Cookie` にトークン（`admin_token`）を保存。
+- **自動割り込み（関所）**:
+  `routes/admin/_middleware.ts` を設置。Freshのファイルベースルーティングの特性を活かし、`/admin` 配下のページへのアクセスすべてに全自動で先回りして認証チェックを掛けます。
+- **UX（ユーザー体験）最適化**:
+  すでにログイン済みのユーザーが再度ログイン画面（`/admin/login`）を開いた場合は、自動的に管理トップ画面（`/admin`）へリダイレクトします。
+
+### 3. ファイル拡張子の使い分け
+
+- **`.tsx`**: 画面の見た目（HTML/JSXタグ）を含むコンポーネント。
+- **`.ts`**: 画面の見た目を持たず、純粋なプログラム（ミドルウェアのロジックなど）だけを記述するファイル。
+
+## 🚀 起動方法
+
+```bash
 deno task start
 ```
-
-This will watch the project directory and restart as necessary.
