@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app # 💡 【超重要】パソコンのフォルダとコンテナを同期！これでホットリロードが効きます！
+      - /app/node_modules/ # Deno内部のキャッシュ領域を保護
+    env_file:
+      - .env # 💡 【超重要】先ほど作った .env の中身をDockerに吸い込ませる！
+    environment:
+      - DENO_ENV=development

@@ -4,10 +4,14 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
+import * as $admin_admins from "./routes/admin/admins.tsx";
 import * as $admin_index from "./routes/admin/index.tsx";
 import * as $admin_login from "./routes/admin/login.tsx";
 import * as $index from "./routes/index.tsx";
+import * as $AdminHeader from "./islands/AdminHeader.tsx";
+import * as $AdminList from "./islands/AdminList.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
 import * as $LogoutButton from "./islands/LogoutButton.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -16,12 +20,16 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
+    "./routes/admin/admins.tsx": $admin_admins,
     "./routes/admin/index.tsx": $admin_index,
     "./routes/admin/login.tsx": $admin_login,
     "./routes/index.tsx": $index,
   },
   islands: {
+    "./islands/AdminHeader.tsx": $AdminHeader,
+    "./islands/AdminList.tsx": $AdminList,
     "./islands/LoginForm.tsx": $LoginForm,
     "./islands/LogoutButton.tsx": $LogoutButton,
   },

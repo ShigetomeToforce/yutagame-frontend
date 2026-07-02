@@ -1,4 +1,5 @@
 import { useSignal } from "@preact/signals";
+import { adminFetch } from "../utils/api.ts";
 
 export default function LoginForm() {
   const email = useSignal("");
@@ -10,29 +11,25 @@ export default function LoginForm() {
     error.value = "";
 
     try {
-      // 1. いつも通りGoにログインをリクエスト
-      const res = await fetch("http://localhost:8080/api/admin/login", {
+      // 🔮 魔法のようにスッキリ！
+      // URLのベタ書きも、面倒なJSON.stringifyも、ヘッダー設定も、res.json()の解析もすべて自動化！
+      interface LoginResponse {
+        token: string;
+      }
+
+      const data = await adminFetch<LoginResponse>("/admin/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.value, password: password.value }),
       });
 
-      if (!res.ok) {
-        throw new Error(
-          "ログインに失敗しました。メールアドレスかパスワードが違います。",
-        );
-      }
-
-      const data = await res.json();
-
-      // 🔑 2. 【変更点】LocalStorageではなく「Cookie」に保存する
-      // max-age=259200 は 72時間（秒換算）という意味です。path=/ でサイト全体で有効にします。
+      // 🔑 2. 成功したらCookieに保存（ここはブラウザのお掃除タイマー用に残します）
       globalThis.document.cookie = `admin_token=${data.token}; max-age=259200; path=/; SameSite=Lax`;
 
       // 🚀 3. 管理トップページへジャンプ
       globalThis.location.href = "/admin";
     } catch (err) {
       if (err instanceof Error) {
+        // パスワード間違い時は、Goが返してくれた「メールアドレスかパスワードが違います」が自動でここに入ります！
         error.value = err.message;
       } else {
         error.value = "予期せぬエラーが発生しました。";
