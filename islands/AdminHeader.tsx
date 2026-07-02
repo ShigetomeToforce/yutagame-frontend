@@ -1,112 +1,128 @@
 import { useSignal } from "@preact/signals";
 
+interface MenuItem {
+  label: string;
+  href: string;
+  active: boolean;
+}
+
 interface AdminHeaderProps {
   pageTitle: string;
-  isTopPage?: boolean;
   serviceName: string;
+  menuItems: MenuItem[]; // 💡 メニューの生データを配列で受け取る
 }
 
 export default function AdminHeader({
   pageTitle,
-  isTopPage = false,
   serviceName,
+  menuItems,
 }: AdminHeaderProps) {
-  // メニューが開いているかどうかの状態を管理するシグナル
   const isMenuOpen = useSignal(false);
 
-  // 🚪 ログアウト処理（Cookieを消してログインへ）
   const handleLogout = () => {
-    globalThis.document.cookie = "admin_token=; max-age=0; path=/;";
-    globalThis.location.href = "/admin/login";
+    document.cookie = "admin_token=; path=/; max-age=0;";
+    window.location.href = "/admin/login";
   };
 
-  // 📝 共通のメニューリンク定義
-  const menuItems = [
-    { label: "🏠 管理トップ", href: "/admin" },
-    { label: "👤 管理スタッフ管理", href: "/admin/admins" },
-    { label: "🎮 ゲーム在庫管理", href: "/admin/games" }, // 今後用
-  ];
-
   return (
-    <>
-      {/* ＝ ＝ ＝ ＝ 固定ヘッダー ＝ ＝ ＝ ＝ */}
-      <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          {/* 🍔 ハンバーガーボタン */}
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm w-full">
+      <div class="px-4 h-14 flex items-center justify-between w-full">
+        {/* 左側：ハンバーガーボタン */}
+        <div class="flex items-center min-w-[40px]">
           <button
-            type="button"
             onClick={() => (isMenuOpen.value = !isMenuOpen.value)}
-            class="p-2 hover:bg-gray-100 rounded-md text-gray-600 focus:outline-none"
+            class="p-2 -ml-2 rounded-lg text-gray-600 hover:bg-gray-100 active:bg-gray-200 focus:outline-none md:hidden transition-colors"
             aria-label="メニューを開く"
           >
-            <span class="text-xl">☰</span>
+            {isMenuOpen.value
+              ? (
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )
+              : (
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
           </button>
-
-          {/* ⬅️ トップに戻るボタン（トップ画面以外で表示） */}
-          {!isTopPage && (
-            <a
-              href="/admin"
-              class="text-gray-400 hover:text-gray-600 font-bold text-lg p-1"
-              title="管理トップへ戻る"
-            >
-              ⬅️
-            </a>
-          )}
-
-          {/* 📍 現在のページ名 */}
-          <h1 class="text-lg font-bold text-gray-800">{pageTitle}</h1>
         </div>
 
-        {/* 🚪 ログアウトボタン */}
-        <button
-          type="button"
-          onClick={handleLogout}
-          class="text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded transition-colors"
-        >
-          ログアウト
-        </button>
-      </header>
+        {/* 中央：タイトル */}
+        <div class="flex-1 text-center px-2 min-w-0">
+          <h1 class="text-base sm:text-lg font-bold text-gray-800 truncate">
+            {pageTitle}
+          </h1>
+        </div>
 
-      {/* ＝ ＝ ＝ ＝ 左から飛び出すサイドメニュー（ドロワー） ＝ ＝ ＝ ＝ */}
-      {/* 背景の黒いモヤ（メニューが開いている時だけ表示） */}
-      {isMenuOpen.value && (
-        <div
-          onClick={() => (isMenuOpen.value = false)}
-          class="fixed inset-0 bg-black/40 z-40 transition-opacity animate-fade-in"
-        />
-      )}
-
-      {/* メインのメニュー本体 */}
-      <div
-        class={`fixed top-0 left-0 bottom-0 w-64 bg-gray-900 text-gray-100 z-50 p-5 transform transition-transform duration-300 ease-in-out shadow-2xl ${
-          isMenuOpen.value ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-          <span class="font-bold text-amber-400 font-mono">
-            🌲 {serviceName} 管理
-          </span>
+        {/* 右側：ログアウト */}
+        <div class="min-w-[40px] flex justify-end">
           <button
-            type="button"
-            onClick={() => (isMenuOpen.value = false)}
-            class="text-gray-400 hover:text-white text-xl p-1"
+            onClick={handleLogout}
+            class="p-2 -mr-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 active:bg-red-100 focus:outline-none flex items-center gap-1 transition-colors text-sm font-medium"
+            title="ログアウト"
           >
-            ✕
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <span class="hidden sm:inline">ログアウト</span>
           </button>
         </div>
-
-        <nav class="space-y-1">
-          {menuItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              class="block px-4 py-3 rounded-md text-sm font-medium hover:bg-gray-800 hover:text-white transition-colors"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
       </div>
-    </>
+
+      {/* 📱 【スマホ専用ドロワー】島の中でループを回して、PCと完全に同一のナビを生成 */}
+      {isMenuOpen.value && (
+        <div class="md:hidden border-t border-gray-100 bg-white px-4 py-3 shadow-inner">
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
+            ⚙️ {serviceName} メニュー
+          </div>
+          <nav class="space-y-1">
+            {menuItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                class={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  item.active
+                    ? "bg-emerald-50 text-emerald-700 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
   );
 }
