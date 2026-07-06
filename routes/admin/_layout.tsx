@@ -3,6 +3,8 @@ import { Head } from "$fresh/runtime.ts";
 import AdminHeader from "../../islands/AdminHeader.tsx";
 
 export default async function AdminLayout(req: Request, ctx: FreshContext) {
+  await Promise.resolve();
+
   const url = new URL(req.url);
 
   if (url.pathname === "/admin/login") {

@@ -21,7 +21,7 @@ export default function AdminHeader({
 
   const handleLogout = () => {
     document.cookie = "admin_token=; path=/; max-age=0;";
-    window.location.href = "/admin/login";
+    globalThis.location.href = "/admin/login";
   };
 
   return (
@@ -30,6 +30,7 @@ export default function AdminHeader({
         {/* 左側：ハンバーガーボタン */}
         <div class="flex items-center min-w-[40px]">
           <button
+            type="button"
             onClick={() => (isMenuOpen.value = !isMenuOpen.value)}
             class="p-2 -ml-2 rounded-lg text-gray-600 hover:bg-gray-100 active:bg-gray-200 focus:outline-none md:hidden transition-colors"
             aria-label="メニューを開く"
@@ -78,6 +79,7 @@ export default function AdminHeader({
         {/* 右側：ログアウト */}
         <div class="min-w-[40px] flex justify-end">
           <button
+            type="button"
             onClick={handleLogout}
             class="p-2 -mr-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 active:bg-red-100 focus:outline-none flex items-center gap-1 transition-colors text-sm font-medium"
             title="ログアウト"
