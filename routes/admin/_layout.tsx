@@ -1,6 +1,6 @@
 import { FreshContext } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
-import AdminHeader from "../../islands/AdminHeader.tsx";
+import AdminHeader from "../../islands/admin/AdminHeader.tsx";
 
 export default async function AdminLayout(req: Request, ctx: FreshContext) {
   await Promise.resolve();
@@ -27,6 +27,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🌲 TOP";
   } else if (cleanPath.startsWith("/admin/admins")) {
     pageTitle = "👤 Adminユーザー管理";
+  } else if (cleanPath.startsWith("/admin/manufacturers")) {
+    pageTitle = "🏭 メーカー管理";
   }
 
   // 🗺️ メニューのデータ構造（これを使ってPCとSP両方のナビを完全同期させます）
@@ -40,6 +42,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "👤 Adminユーザー管理",
       href: "/admin/admins",
       active: cleanPath.startsWith("/admin/admins"),
+    },
+    {
+      label: "🏭 メーカー管理",
+      href: "/admin/manufacturers",
+      active: cleanPath.startsWith("/admin/manufacturers"),
     },
   ];
 

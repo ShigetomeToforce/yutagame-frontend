@@ -31,6 +31,23 @@ export default function AdminTopPage() {
           </p>
         </a>
 
+        <a
+          href="/admin/manufacturers"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-emerald-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-emerald-600 transition-colors">
+              🏭 メーカー管理
+            </div>
+            <span class="text-gray-300 group-hover:text-emerald-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            製造メーカーの一覧表示、検索、登録、更新、削除などを管理します。
+          </p>
+        </a>
+
         {/* 2. ゲーム在庫管理（準備中） */}
         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 border-dashed opacity-65 relative overflow-hidden group">
           <div class="flex items-center justify-between mb-2">

@@ -1,4 +1,4 @@
-import AdminList from "../../../islands/admin/AdminList.tsx";
+import AdminList from "../../../islands/admin/admins/AdminList.tsx";
 
 export default function AdminListPage() {
   return (
