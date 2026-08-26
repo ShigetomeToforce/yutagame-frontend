@@ -23,7 +23,8 @@ export default function LoginForm() {
       });
 
       // 🔑 2. 成功したらCookieに保存（ここはブラウザのお掃除タイマー用に残します）
-      globalThis.document.cookie = `admin_token=${data.token}; max-age=259200; path=/; SameSite=Lax`;
+      globalThis.document.cookie =
+        `admin_token=${data.token}; max-age=259200; path=/; SameSite=Lax`;
 
       // 🚀 3. 管理トップページへジャンプ
       globalThis.location.href = "/admin";
@@ -58,9 +59,9 @@ export default function LoginForm() {
             <input
               type="email"
               value={email.value}
-              onInput={(e) =>
-                (email.value = (e.target as HTMLInputElement).value)
-              }
+              onInput={(
+                e,
+              ) => (email.value = (e.target as HTMLInputElement).value)}
               required
               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -72,9 +73,9 @@ export default function LoginForm() {
             <input
               type="password"
               value={password.value}
-              onInput={(e) =>
-                (password.value = (e.target as HTMLInputElement).value)
-              }
+              onInput={(
+                e,
+              ) => (password.value = (e.target as HTMLInputElement).value)}
               required
               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
