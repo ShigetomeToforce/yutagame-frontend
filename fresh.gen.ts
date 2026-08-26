@@ -11,9 +11,9 @@ import * as $admin_index from "./routes/admin/index.tsx";
 import * as $admin_login from "./routes/admin/login.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AdminHeader from "./islands/AdminHeader.tsx";
-import * as $AdminList from "./islands/AdminList.tsx";
-import * as $LoginForm from "./islands/LoginForm.tsx";
-import * as $LogoutButton from "./islands/LogoutButton.tsx";
+import * as $AdminList from "./islands/admin/AdminList.tsx";
+import * as $LoginForm from "./islands/auth/LoginForm.tsx";
+import * as $LogoutButton from "./islands/auth/LogoutButton.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -29,9 +29,9 @@ const manifest = {
   },
   islands: {
     "./islands/AdminHeader.tsx": $AdminHeader,
-    "./islands/AdminList.tsx": $AdminList,
-    "./islands/LoginForm.tsx": $LoginForm,
-    "./islands/LogoutButton.tsx": $LogoutButton,
+    "./islands/admin/AdminList.tsx": $AdminList,
+    "./islands/auth/LoginForm.tsx": $LoginForm,
+    "./islands/auth/LogoutButton.tsx": $LogoutButton,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

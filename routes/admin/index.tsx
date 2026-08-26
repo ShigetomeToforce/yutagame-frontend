@@ -13,21 +13,21 @@ export default function AdminTopPage() {
 
       {/* 📦 機能カードの一覧（グリッド配置） */}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 1. 管理スタッフ管理 */}
+        {/* 1. Adminユーザー管理 */}
         <a
           href="/admin/admins"
           class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
         >
           <div class="flex items-center justify-between mb-2">
             <div class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">
-              👤 管理スタッフ管理
+              👤 Adminユーザー管理
             </div>
             <span class="text-gray-300 group-hover:text-blue-500 transition-colors text-xl font-mono">
               →
             </span>
           </div>
           <p class="text-sm text-gray-500 leading-relaxed">
-            システムを利用する管理者アカウントの新規登録、編集、一覧表示、および権限の管理を行います。
+            システムを利用するAdminユーザーアカウントの新規登録、編集、一覧表示、および権限の管理を行います。
           </p>
         </a>
 

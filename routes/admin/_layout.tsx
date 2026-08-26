@@ -24,20 +24,20 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
   // 📄 ページタイトルの判定
   let pageTitle = "管理トップ";
   if (cleanPath === "/admin") {
-    pageTitle = "🌲 メインメニュー";
+    pageTitle = "🌲 TOP";
   } else if (cleanPath.startsWith("/admin/admins")) {
-    pageTitle = "👤 管理スタッフ設定（一覧）";
+    pageTitle = "👤 Adminユーザー管理";
   }
 
   // 🗺️ メニューのデータ構造（これを使ってPCとSP両方のナビを完全同期させます）
   const menuItems = [
     {
-      label: "🌲 トップメニュー",
+      label: "🌲 TOP",
       href: "/admin",
       active: cleanPath === "/admin",
     },
     {
-      label: "👤 管理スタッフ設定",
+      label: "👤 Adminユーザー管理",
       href: "/admin/admins",
       active: cleanPath.startsWith("/admin/admins"),
     },
@@ -63,7 +63,7 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
           {/* 🗺️ 【左側：PC専用サイドバー】画面の左端に完全にピタッと固定（w-64） */}
           <aside class="hidden md:block w-64 bg-white border-r border-gray-200 p-4 flex-shrink-0 h-[calc(100vh-3.5rem)] sticky top-14">
             <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-3">
-              ⚙️ {serviceName} システム
+              ⚙️ {serviceName} 管理画面
             </div>
             <nav class="space-y-1">
               {menuItems.map((item) => (

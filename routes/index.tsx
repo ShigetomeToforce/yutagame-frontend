@@ -3,10 +3,10 @@ export default function Home() {
     <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
       <div class="bg-white p-8 rounded-xl shadow-md max-w-xl w-full text-center">
         <h1 class="text-3xl font-bold text-gray-800 mb-4">
-          🎮 YUTAGAME レトロゲームコレクション
+          🎮 パッケージの森
         </h1>
         <p class="text-gray-600 mb-8">
-          ここは一般のエンドユーザー向けトップページです。（現在は準備中・ログイン不要）
+          ここは一般のエンドユーザー向けトップページです。（工事中）
         </p>
 
         <div class="border-t border-dashed border-gray-300 pt-6">

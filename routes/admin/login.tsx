@@ -1,4 +1,4 @@
-import LoginForm from "../../islands/LoginForm.tsx";
+import LoginForm from "../../islands/auth/LoginForm.tsx";
 
 export default function AdminLoginPage() {
   // 💡 サーバーコンポーネントからは、ただアイランド部品を呼び出すだけにします

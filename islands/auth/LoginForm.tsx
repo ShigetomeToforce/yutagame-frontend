@@ -1,5 +1,5 @@
 import { useSignal } from "@preact/signals";
-import { adminFetch } from "../utils/api.ts";
+import { adminFetch } from "../../utils/api.ts";
 
 export default function LoginForm() {
   const email = useSignal("");
