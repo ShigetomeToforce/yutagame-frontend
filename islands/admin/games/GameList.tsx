@@ -2,6 +2,7 @@ import { adminFetch } from "../../../utils/api.ts";
 import PaginatedResourceTable, {
   type PaginatedResponse,
 } from "../common/PaginatedResourceTable.tsx";
+import type { ComponentChildren } from "preact";
 
 interface Game {
   id: number;
@@ -11,9 +12,31 @@ interface Game {
   createdAt: string;
 }
 
-export default function GameList() {
+interface Props {
+  rightActions?: ComponentChildren;
+  createHref?: string;
+  showCreate?: boolean;
+}
+
+export default function GameList(
+  { rightActions, createHref, showCreate = true }: Props,
+) {
+  const createButton = (createHref && showCreate)
+    ? (
+      <a
+        href={createHref}
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded text-sm transition-colors shadow flex items-center gap-1"
+      >
+        <span>➕</span> 新規登録
+      </a>
+    )
+    : undefined;
+
+  const actions = rightActions ?? createButton;
+
   return (
     <PaginatedResourceTable<Game>
+      rightActions={actions}
       fetchPage={async (page, limit, query) => {
         const params = new URLSearchParams({
           page: String(page),

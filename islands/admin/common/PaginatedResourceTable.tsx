@@ -22,6 +22,7 @@ interface PaginatedResourceTableProps<T> {
   renderDesktopHeader: () => ComponentChildren;
   renderDesktopRow: (item: T) => ComponentChildren;
   initialLimit?: number;
+  rightActions?: ComponentChildren;
 }
 
 const PAGE_OPTIONS = [10, 30, 50];
@@ -41,6 +42,7 @@ export default function PaginatedResourceTable<T>({
   renderDesktopHeader,
   renderDesktopRow,
   initialLimit = 10,
+  rightActions,
 }: PaginatedResourceTableProps<T>) {
   const items = useSignal<T[]>([]);
   const error = useSignal("");
@@ -135,27 +137,35 @@ export default function PaginatedResourceTable<T>({
 
   return (
     <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="p-4 border-b border-gray-200 bg-gray-50">
-        <form
-          class="flex flex-col sm:flex-row gap-3"
-          onSubmit={handleSearchSubmit}
-        >
-          <input
-            type="text"
-            value={searchInput.value}
-            onInput={(
-              e,
-            ) => (searchInput.value = (e.target as HTMLInputElement).value)}
-            placeholder={searchPlaceholder}
-            class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
+      <div class="py-4 border-b border-gray-200 bg-gray-50">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <form
+            class="flex w-full flex-1 gap-3 items-center"
+            onSubmit={handleSearchSubmit}
           >
-            検索
-          </button>
-        </form>
+            <input
+              type="text"
+              value={searchInput.value}
+              onInput={(
+                e,
+              ) => (searchInput.value = (e.target as HTMLInputElement).value)}
+              placeholder={searchPlaceholder}
+              class="w-full flex-1 md:max-w-2xl border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
+            >
+              検索
+            </button>
+          </form>
+
+          {rightActions && (
+            <div class="flex-shrink-0 flex items-center justify-end">
+              {rightActions}
+            </div>
+          )}
+        </div>
       </div>
 
       {error.value && (

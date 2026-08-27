@@ -4,10 +4,10 @@ export default function AdminTopPage() {
       {/* 🧭 メニュー全体のセクション見出し */}
       <div class="border-b border-gray-200 pb-3">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-          管理機能メニュー一覧
+          管理機能メニュー
         </h2>
         <p class="text-xs text-gray-400 mt-1">
-          実行したい管理操作を選択するか、左上のメニューボタンをご利用ください。
+          実行したい管理操作を選択してください。
         </p>
       </div>
 
