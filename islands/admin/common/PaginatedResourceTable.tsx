@@ -1,5 +1,6 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+import type { ComponentChildren } from "preact";
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -17,9 +18,9 @@ interface PaginatedResourceTableProps<T> {
   emptyMessage: string;
   emptySearchMessage: string;
   getKey: (item: T) => string | number;
-  renderMobileRow: (item: T) => unknown;
-  renderDesktopHeader: () => unknown;
-  renderDesktopRow: (item: T) => unknown;
+  renderMobileRow: (item: T) => ComponentChildren;
+  renderDesktopHeader: () => ComponentChildren;
+  renderDesktopRow: (item: T) => ComponentChildren;
   initialLimit?: number;
 }
 
