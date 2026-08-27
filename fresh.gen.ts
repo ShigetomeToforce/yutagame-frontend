@@ -7,10 +7,15 @@ import * as $_app from "./routes/_app.tsx";
 import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
 import * as $admin_admins_index from "./routes/admin/admins/index.tsx";
+import * as $admin_games_index from "./routes/admin/games/index.tsx";
+import * as $admin_genres_index from "./routes/admin/genres/index.tsx";
 import * as $admin_index from "./routes/admin/index.tsx";
+import * as $admin_keywords_index from "./routes/admin/keywords/index.tsx";
 import * as $admin_login from "./routes/admin/login.tsx";
+import * as $admin_machines_index from "./routes/admin/machines/index.tsx";
 import * as $admin_manufacturers_layout from "./routes/admin/manufacturers/_layout.tsx";
 import * as $admin_manufacturers_index from "./routes/admin/manufacturers/index.tsx";
+import * as $admin_users_index from "./routes/admin/users/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AdminHeader from "./islands/AdminHeader.tsx";
 import * as $admin_AdminHeader from "./islands/admin/AdminHeader.tsx";
@@ -18,7 +23,12 @@ import * as $admin_admins_AdminList from "./islands/admin/admins/AdminList.tsx";
 import * as $admin_auth_LoginForm from "./islands/admin/auth/LoginForm.tsx";
 import * as $admin_auth_LogoutButton from "./islands/admin/auth/LogoutButton.tsx";
 import * as $admin_common_PaginatedResourceTable from "./islands/admin/common/PaginatedResourceTable.tsx";
+import * as $admin_games_GameList from "./islands/admin/games/GameList.tsx";
+import * as $admin_genres_GenreList from "./islands/admin/genres/GenreList.tsx";
+import * as $admin_keywords_KeywordList from "./islands/admin/keywords/KeywordList.tsx";
+import * as $admin_machines_MachineList from "./islands/admin/machines/MachineList.tsx";
 import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufacturers/ManufacturerList.tsx";
+import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -30,10 +40,15 @@ const manifest = {
     "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
     "./routes/admin/admins/index.tsx": $admin_admins_index,
+    "./routes/admin/games/index.tsx": $admin_games_index,
+    "./routes/admin/genres/index.tsx": $admin_genres_index,
     "./routes/admin/index.tsx": $admin_index,
+    "./routes/admin/keywords/index.tsx": $admin_keywords_index,
     "./routes/admin/login.tsx": $admin_login,
+    "./routes/admin/machines/index.tsx": $admin_machines_index,
     "./routes/admin/manufacturers/_layout.tsx": $admin_manufacturers_layout,
     "./routes/admin/manufacturers/index.tsx": $admin_manufacturers_index,
+    "./routes/admin/users/index.tsx": $admin_users_index,
     "./routes/index.tsx": $index,
   },
   islands: {
@@ -44,8 +59,13 @@ const manifest = {
     "./islands/admin/auth/LogoutButton.tsx": $admin_auth_LogoutButton,
     "./islands/admin/common/PaginatedResourceTable.tsx":
       $admin_common_PaginatedResourceTable,
+    "./islands/admin/games/GameList.tsx": $admin_games_GameList,
+    "./islands/admin/genres/GenreList.tsx": $admin_genres_GenreList,
+    "./islands/admin/keywords/KeywordList.tsx": $admin_keywords_KeywordList,
+    "./islands/admin/machines/MachineList.tsx": $admin_machines_MachineList,
     "./islands/admin/manufacturers/ManufacturerList.tsx":
       $admin_manufacturers_ManufacturerList,
+    "./islands/admin/users/UserList.tsx": $admin_users_UserList,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,
   },

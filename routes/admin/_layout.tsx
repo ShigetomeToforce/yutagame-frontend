@@ -25,13 +25,22 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
   let pageTitle = "管理トップ";
   if (cleanPath === "/admin") {
     pageTitle = "🌲 TOP";
-  } else if (cleanPath.startsWith("/admin/admins")) {
-    pageTitle = "👤 Adminユーザー管理";
+  } else if (cleanPath.startsWith("/admin/games")) {
+    pageTitle = "🎮 ゲーム管理";
+  } else if (cleanPath.startsWith("/admin/machines")) {
+    pageTitle = "🖥️ 機種管理";
+  } else if (cleanPath.startsWith("/admin/genres")) {
+    pageTitle = "🏷️ ジャンル管理";
   } else if (cleanPath.startsWith("/admin/manufacturers")) {
     pageTitle = "🏭 メーカー管理";
+  } else if (cleanPath.startsWith("/admin/keywords")) {
+    pageTitle = "🔑 キーワード管理";
+  } else if (cleanPath.startsWith("/admin/admins")) {
+    pageTitle = "👤 Adminユーザー管理";
+  } else if (cleanPath.startsWith("/admin/users")) {
+    pageTitle = "👥 ユーザー管理";
   }
 
-  // 🗺️ メニューのデータ構造（これを使ってPCとSP両方のナビを完全同期させます）
   const menuItems = [
     {
       label: "🌲 TOP",
@@ -39,14 +48,42 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       active: cleanPath === "/admin",
     },
     {
-      label: "👤 Adminユーザー管理",
-      href: "/admin/admins",
-      active: cleanPath.startsWith("/admin/admins"),
+      label: "🎮 ゲーム管理",
+      href: "/admin/games",
+      active: cleanPath.startsWith("/admin/games"),
+    },
+    {
+      label: "🖥️ 機種管理",
+      href: "/admin/machines",
+      active: cleanPath.startsWith("/admin/machines"),
+    },
+    {
+      label: "🏷️ ジャンル管理",
+      href: "/admin/genres",
+      active: cleanPath.startsWith("/admin/genres"),
     },
     {
       label: "🏭 メーカー管理",
       href: "/admin/manufacturers",
       active: cleanPath.startsWith("/admin/manufacturers"),
+    },
+    {
+      label: "🔑 キーワード管理",
+      href: "/admin/keywords",
+      active: cleanPath.startsWith("/admin/keywords"),
+    },
+  ];
+
+  const userMenuItems = [
+    {
+      label: "👤 Adminユーザー管理",
+      href: "/admin/admins",
+      active: cleanPath.startsWith("/admin/admins"),
+    },
+    {
+      label: "👥 ユーザー管理",
+      href: "/admin/users",
+      active: cleanPath.startsWith("/admin/users"),
     },
   ];
 
@@ -74,6 +111,22 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
             </div>
             <nav class="space-y-1">
               {menuItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  class={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    item.active
+                      ? "bg-emerald-50 text-emerald-700 font-semibold"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+
+              <div class="my-3 border-t border-gray-200" />
+
+              {userMenuItems.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
