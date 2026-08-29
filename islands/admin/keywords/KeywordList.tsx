@@ -8,7 +8,7 @@ interface Keyword {
   id: number;
   name: string;
   kana: string;
-  createdAt: string;
+  keywordType?: string;
 }
 
 interface Props {
@@ -33,6 +33,15 @@ export default function KeywordList(
 
   const actions = rightActions ?? createButton;
 
+  const truncateText = (
+    value: string | number | undefined,
+    maxLength: number,
+  ) => {
+    const text = String(value ?? "").trim();
+    if (!text || text === "-") return "-";
+    return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+  };
+
   return (
     <PaginatedResourceTable<Keyword>
       rightActions={actions}
@@ -50,29 +59,30 @@ export default function KeywordList(
           `/admin/keywords?${params.toString()}`,
         );
       }}
-      searchPlaceholder="キーワード名またはかなで検索"
+      searchPlaceholder="キーワード名またはカナで検索"
       emptyMessage="登録されているキーワードはありません。"
       emptySearchMessage="検索条件に一致するキーワードはありません。"
       getKey={(keyword) => keyword.id}
       renderDesktopHeader={() => (
         <>
-          <th class="p-4 w-16">ID</th>
-          <th class="p-4">名前</th>
-          <th class="p-4">かな</th>
-          <th class="p-4 w-40">登録日</th>
+          <th class="p-4 w-52">名前</th>
+          <th class="p-4 w-52">カナ</th>
+          <th class="p-4 w-52">種別</th>
           <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(keyword) => (
         <>
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-xs font-mono text-gray-400 block mb-0.5">
-                ID: {keyword.id}
-              </span>
-              <h3 class="font-bold text-gray-900 text-base">{keyword.name}</h3>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3
+                class="font-bold text-gray-900 text-base truncate"
+                title={keyword.name}
+              >
+                {truncateText(keyword.name, 20)}
+              </h3>
             </div>
-            <div class="flex items-center gap-3 text-sm">
+            <div class="flex items-center gap-3 text-sm shrink-0">
               <button
                 type="button"
                 class="text-blue-600 hover:text-blue-800 font-medium"
@@ -90,13 +100,15 @@ export default function KeywordList(
 
           <div class="text-sm space-y-1 text-gray-600">
             <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-xs w-20">かな:</span>
-              <span>{keyword.kana}</span>
+              <span class="text-gray-400 text-xs w-20">カナ:</span>
+              <span class="truncate" title={keyword.kana}>
+                {truncateText(keyword.kana, 20)}
+              </span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-xs w-20">登録日:</span>
-              <span class="text-gray-500">
-                {new Date(keyword.createdAt).toLocaleDateString("ja-JP")}
+              <span class="text-gray-400 text-xs w-20">種別:</span>
+              <span class="truncate" title={keyword.keywordType ?? "-"}>
+                {truncateText(keyword.keywordType ?? "-", 20)}
               </span>
             </div>
           </div>
@@ -104,13 +116,25 @@ export default function KeywordList(
       )}
       renderDesktopRow={(keyword) => (
         <>
-          <td class="p-4 font-mono text-gray-400">{keyword.id}</td>
-          <td class="p-4 font-bold text-gray-900">{keyword.name}</td>
-          <td class="p-4 text-gray-500">{keyword.kana}</td>
-          <td class="p-4 text-gray-400">
-            {new Date(keyword.createdAt).toLocaleDateString("ja-JP")}
+          <td
+            class="p-4 font-bold text-gray-900 w-52 max-w-[12rem] truncate"
+            title={keyword.name}
+          >
+            {truncateText(keyword.name, 20)}
           </td>
-          <td class="p-4 text-center space-x-2">
+          <td
+            class="p-4 text-gray-500 w-52 max-w-[12rem] truncate"
+            title={keyword.kana}
+          >
+            {truncateText(keyword.kana, 20)}
+          </td>
+          <td
+            class="p-4 text-gray-500 w-52 max-w-[12rem] truncate"
+            title={keyword.keywordType ?? "-"}
+          >
+            {truncateText(keyword.keywordType ?? "-", 20)}
+          </td>
+          <td class="p-4 text-center space-x-2 w-32">
             <button
               type="button"
               class="text-blue-600 hover:text-blue-800 font-medium"

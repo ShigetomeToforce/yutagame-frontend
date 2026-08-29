@@ -9,8 +9,12 @@ import type { ComponentChildren } from "preact";
 interface Machine {
   id: number;
   name: string;
+  kana?: string;
   manufacturerName?: string;
-  createdAt: string;
+  releaseDate?: string;
+  manufacturer?: {
+    name?: string;
+  };
 }
 
 interface Props {
@@ -65,9 +69,41 @@ export default function MachineList(
 
   const actions = rightActions ?? createButton;
 
-  const selectedManufacturers = manufacturers.value.filter((manufacturer) =>
-    selectedManufacturerIds.value.includes(manufacturer.id)
-  );
+  const truncateText = (
+    value: string | number | undefined,
+    maxLength: number,
+  ) => {
+    const text = String(value ?? "").trim();
+    if (!text || text === "-") return "-";
+    return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return "-";
+    const raw = value.split("T")[0];
+    const [year, month, day] = raw.split("-").map(Number);
+    if (!year || !month || !day) return "-";
+    return `${year}年${month}月${day}日`;
+  };
+
+  const normalizeMachine = (machine: Machine) => ({
+    ...machine,
+    manufacturerName: machine.manufacturerName ?? machine.manufacturer?.name ??
+      "-",
+    kana: machine.kana ?? "",
+    releaseDate: machine.releaseDate ?? "",
+  });
+
+  const selectedManufacturers = selectedManufacturerIds.value
+    .map((id) =>
+      manufacturers.value.find((manufacturer) => manufacturer.id === id)
+    )
+    .filter((manufacturer): manufacturer is ManufacturerOption =>
+      Boolean(manufacturer)
+    );
+
+  const visibleSelectedManufacturers = selectedManufacturers.slice(0, 5);
+  const hiddenSelectedCount = Math.max(0, selectedManufacturers.length - 5);
 
   const filteredManufacturers = manufacturers.value.filter((manufacturer) => {
     const q = manufacturerSearchQuery.value.trim().toLowerCase();
@@ -92,47 +128,46 @@ export default function MachineList(
 
   const manufacturerSelect = (
     <div class="space-y-3">
-      <div class="flex items-center justify-between gap-3">
-        <label class="block text-sm font-medium text-gray-700">メーカー</label>
-      </div>
+      <div class="flex flex-wrap items-center gap-3 md:gap-5">
+        <button
+          type="button"
+          onClick={() => (manufacturerModalOpen.value = true)}
+          class="inline-flex w-fit items-center justify-between gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-sm font-medium text-gray-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <span>メーカーを選択</span>
+          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-gray-600 text-xs">
+            ＋
+          </span>
+        </button>
 
-      <button
-        type="button"
-        onClick={() => (manufacturerModalOpen.value = true)}
-        class="w-full flex items-center justify-between rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-700 shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <span>
-          {selectedManufacturers.length > 0
-            ? `${selectedManufacturers.length}件選択中`
-            : "メーカーを選択"}
-        </span>
-        <span class="text-gray-400">＋</span>
-      </button>
-
-      {selectedManufacturers.length > 0 && (
-        <div class="flex flex-wrap gap-2">
-          {selectedManufacturers.map((manufacturer) => (
-            <span
-              key={manufacturer.id}
-              class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
-            >
-              {manufacturer.name}
-              <button
-                type="button"
-                onClick={() => toggleManufacturer(manufacturer.id)}
-                class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-700 hover:bg-blue-300"
-                aria-label={`${manufacturer.name} を選択解除`}
+        {selectedManufacturers.length > 0 && (
+          <div class="flex flex-wrap items-center gap-2 md:ml-5">
+            {visibleSelectedManufacturers.map((manufacturer) => (
+              <span
+                key={manufacturer.id}
+                class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700"
               >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      <p class="text-xs text-gray-500">
-        複数選択可。選択したメーカーに含まれる機種のみを絞り込みます。
-      </p>
+                <span class="max-w-[8rem] truncate" title={manufacturer.name}>
+                  {manufacturer.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleManufacturer(manufacturer.id)}
+                  class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-700 hover:bg-blue-300"
+                  aria-label={`${manufacturer.name} を選択解除`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {hiddenSelectedCount > 0 && (
+              <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                他{hiddenSelectedCount}件
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {manufacturerModalOpen.value && (
         <div
@@ -229,33 +264,42 @@ export default function MachineList(
           params.append("manufacturerIDs", String(manufacturerId));
         }
 
-        return await adminFetch<PaginatedResponse<Machine>>(
+        const response = await adminFetch<PaginatedResponse<Machine>>(
           `/admin/machines?${params.toString()}`,
         );
+
+        return {
+          ...response,
+          data: (response.data ?? []).map((machine) =>
+            normalizeMachine(machine)
+          ),
+        };
       }}
-      searchPlaceholder="機種名で検索"
+      searchPlaceholder="機種名またはカナで検索"
       emptyMessage="登録されている機種はありません。"
       emptySearchMessage="検索条件に一致する機種はありません。"
       getKey={(machine) => machine.id}
       renderDesktopHeader={() => (
         <>
-          <th class="p-4 w-16">ID</th>
-          <th class="p-4">名前</th>
-          <th class="p-4">メーカー</th>
-          <th class="p-4 w-40">登録日</th>
+          <th class="p-4 w-52">名前</th>
+          <th class="p-4 w-52">カナ</th>
+          <th class="p-4 w-52">メーカー</th>
+          <th class="p-4 w-40">発売日</th>
           <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(machine) => (
         <>
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-xs font-mono text-gray-400 block mb-0.5">
-                ID: {machine.id}
-              </span>
-              <h3 class="font-bold text-gray-900 text-base">{machine.name}</h3>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3
+                class="font-bold text-gray-900 text-base truncate"
+                title={machine.name}
+              >
+                {truncateText(machine.name, 20)}
+              </h3>
             </div>
-            <div class="flex items-center gap-3 text-sm">
+            <div class="flex items-center gap-3 text-sm shrink-0">
               <button
                 type="button"
                 class="text-blue-600 hover:text-blue-800 font-medium"
@@ -273,13 +317,21 @@ export default function MachineList(
 
           <div class="text-sm space-y-1 text-gray-600">
             <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-xs w-20">メーカー:</span>
-              <span>{machine.manufacturerName ?? "-"}</span>
+              <span class="text-gray-400 text-xs w-20">カナ:</span>
+              <span class="truncate" title={machine.kana ?? "-"}>
+                {truncateText(machine.kana ?? "-", 20)}
+              </span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-xs w-20">登録日:</span>
+              <span class="text-gray-400 text-xs w-20">メーカー:</span>
+              <span class="truncate" title={machine.manufacturerName ?? "-"}>
+                {truncateText(machine.manufacturerName ?? "-", 20)}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400 text-xs w-20">発売日:</span>
               <span class="text-gray-500">
-                {new Date(machine.createdAt).toLocaleDateString("ja-JP")}
+                {formatDate(machine.releaseDate)}
               </span>
             </div>
           </div>
@@ -287,13 +339,28 @@ export default function MachineList(
       )}
       renderDesktopRow={(machine) => (
         <>
-          <td class="p-4 font-mono text-gray-400">{machine.id}</td>
-          <td class="p-4 font-bold text-gray-900">{machine.name}</td>
-          <td class="p-4 text-gray-500">{machine.manufacturerName ?? "-"}</td>
-          <td class="p-4 text-gray-400">
-            {new Date(machine.createdAt).toLocaleDateString("ja-JP")}
+          <td
+            class="p-4 font-bold text-gray-900 w-52 max-w-[12rem] truncate"
+            title={machine.name}
+          >
+            {truncateText(machine.name, 20)}
           </td>
-          <td class="p-4 text-center space-x-2">
+          <td
+            class="p-4 text-gray-500 w-52 max-w-[12rem] truncate"
+            title={machine.kana ?? "-"}
+          >
+            {truncateText(machine.kana ?? "-", 20)}
+          </td>
+          <td
+            class="p-4 text-gray-500 w-52 max-w-[12rem] truncate"
+            title={machine.manufacturerName ?? "-"}
+          >
+            {truncateText(machine.manufacturerName ?? "-", 20)}
+          </td>
+          <td class="p-4 text-gray-500 w-40 whitespace-nowrap">
+            {formatDate(machine.releaseDate)}
+          </td>
+          <td class="p-4 text-center space-x-2 w-32">
             <button
               type="button"
               class="text-blue-600 hover:text-blue-800 font-medium"

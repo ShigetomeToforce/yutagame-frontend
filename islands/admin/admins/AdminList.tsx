@@ -8,7 +8,6 @@ interface AdminUser {
   id: number;
   name: string;
   email: string;
-  createdAt: string;
 }
 
 interface Props {
@@ -33,6 +32,15 @@ export default function AdminList(
 
   const actions = rightActions ?? createButton;
 
+  const truncateText = (
+    value: string | number | undefined,
+    maxLength: number,
+  ) => {
+    const text = String(value ?? "").trim();
+    if (!text || text === "-") return "-";
+    return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+  };
+
   return (
     <PaginatedResourceTable<AdminUser>
       rightActions={actions}
@@ -56,23 +64,23 @@ export default function AdminList(
       getKey={(admin) => admin.id}
       renderDesktopHeader={() => (
         <>
-          <th class="p-4 w-16">ID</th>
-          <th class="p-4">名前</th>
-          <th class="p-4">メールアドレス</th>
-          <th class="p-4 w-40">登録日</th>
+          <th class="p-4 w-64">名前</th>
+          <th class="p-4 w-72">メールアドレス</th>
           <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(admin) => (
         <>
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-xs font-mono text-gray-400 block mb-0.5">
-                ID: {admin.id}
-              </span>
-              <h3 class="font-bold text-gray-900 text-base">{admin.name}</h3>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3
+                class="font-bold text-gray-900 text-base truncate"
+                title={admin.name}
+              >
+                {truncateText(admin.name, 30)}
+              </h3>
             </div>
-            <div class="flex items-center gap-3 text-sm">
+            <div class="flex items-center gap-3 text-sm shrink-0">
               <button
                 type="button"
                 class="text-blue-600 hover:text-blue-800 font-medium"
@@ -91,12 +99,8 @@ export default function AdminList(
           <div class="text-sm space-y-1 text-gray-600">
             <div class="flex items-center gap-2">
               <span class="text-gray-400 text-xs w-20">メール:</span>
-              <span class="break-all">{admin.email}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-xs w-20">登録日:</span>
-              <span class="text-gray-500">
-                {new Date(admin.createdAt).toLocaleDateString("ja-JP")}
+              <span class="break-all truncate" title={admin.email}>
+                {truncateText(admin.email, 50)}
               </span>
             </div>
           </div>
@@ -104,13 +108,19 @@ export default function AdminList(
       )}
       renderDesktopRow={(admin) => (
         <>
-          <td class="p-4 font-mono text-gray-400">{admin.id}</td>
-          <td class="p-4 font-bold text-gray-900">{admin.name}</td>
-          <td class="p-4 text-gray-500">{admin.email}</td>
-          <td class="p-4 text-gray-400">
-            {new Date(admin.createdAt).toLocaleDateString("ja-JP")}
+          <td
+            class="p-4 font-bold text-gray-900 w-64 max-w-[15rem] truncate"
+            title={admin.name}
+          >
+            {truncateText(admin.name, 30)}
           </td>
-          <td class="p-4 text-center space-x-2">
+          <td
+            class="p-4 text-gray-500 w-72 max-w-[18rem] truncate"
+            title={admin.email}
+          >
+            {truncateText(admin.email, 50)}
+          </td>
+          <td class="p-4 text-center space-x-2 w-32">
             <button
               type="button"
               class="text-blue-600 hover:text-blue-800 font-medium"

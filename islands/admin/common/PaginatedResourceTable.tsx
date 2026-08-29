@@ -27,6 +27,7 @@ interface PaginatedResourceTableProps<T> {
 }
 
 const PAGE_OPTIONS = [10, 30, 50];
+const SEARCH_REFRESH_EVENT = "resource-table-search";
 
 const clamp = (value: number, min: number, max: number) => {
   if (Number.isNaN(value)) return min;
@@ -97,6 +98,21 @@ export default function PaginatedResourceTable<T>({
 
   useEffect(() => {
     void loadPage(1, initialLimit, "");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleRefresh = () => {
+      page.value = 1;
+      pageInput.value = "1";
+      void loadPage(1, limit.value, searchTerm.value);
+    };
+
+    window.addEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
+    return () => {
+      window.removeEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
+    };
   }, []);
 
   const handleSearchSubmit = (e: Event) => {
