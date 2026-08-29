@@ -8,6 +8,7 @@ import type { ComponentChildren } from "preact";
 
 interface Machine {
   id: number;
+  code: string;
   name: string;
   kana?: string;
   manufacturerName?: string;
@@ -55,6 +56,24 @@ export default function MachineList(
       }
     })();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    const confirmed = globalThis.confirm(
+      "この機種を削除してもよろしいですか？",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await adminFetch(`/admin/machines/${id}`, { method: "DELETE" });
+      globalThis.location.reload();
+    } catch (error) {
+      globalThis.alert(
+        error instanceof Error ? error.message : "削除に失敗しました。",
+      );
+    }
+  };
 
   const createButton = (createHref && showCreate)
     ? (
@@ -300,14 +319,15 @@ export default function MachineList(
               </h3>
             </div>
             <div class="flex items-center gap-3 text-sm shrink-0">
-              <button
-                type="button"
+              <a
+                href={`/admin/machines/${encodeURIComponent(machine.code)}`}
                 class="text-blue-600 hover:text-blue-800 font-medium"
               >
                 編集
-              </button>
+              </a>
               <button
                 type="button"
+                onClick={() => void handleDelete(machine.id)}
                 class="text-red-600 hover:text-red-800 font-medium"
               >
                 削除
@@ -361,14 +381,15 @@ export default function MachineList(
             {formatDate(machine.releaseDate)}
           </td>
           <td class="p-4 text-center space-x-2 w-32">
-            <button
-              type="button"
+            <a
+              href={`/admin/machines/${encodeURIComponent(machine.code)}`}
               class="text-blue-600 hover:text-blue-800 font-medium"
             >
               編集
-            </button>
+            </a>
             <button
               type="button"
+              onClick={() => void handleDelete(machine.id)}
               class="text-red-600 hover:text-red-800 font-medium"
             >
               削除

@@ -6,6 +6,7 @@ import type { ComponentChildren } from "preact";
 
 interface Genre {
   id: number;
+  code: string;
   name: string;
   kana: string;
 }
@@ -19,6 +20,24 @@ interface Props {
 export default function GenreList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
+  const handleDelete = async (id: number) => {
+    const confirmed = globalThis.confirm(
+      "このジャンルを削除してもよろしいですか？",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await adminFetch(`/admin/genres/${id}`, { method: "DELETE" });
+      globalThis.location.reload();
+    } catch (error) {
+      globalThis.alert(
+        error instanceof Error ? error.message : "削除に失敗しました。",
+      );
+    }
+  };
+
   const createButton = (createHref && showCreate)
     ? (
       <a
@@ -81,14 +100,15 @@ export default function GenreList(
               </h3>
             </div>
             <div class="flex items-center gap-3 text-sm shrink-0">
-              <button
-                type="button"
+              <a
+                href={`/admin/genres/${encodeURIComponent(genre.code)}`}
                 class="text-blue-600 hover:text-blue-800 font-medium"
               >
                 編集
-              </button>
+              </a>
               <button
                 type="button"
+                onClick={() => void handleDelete(genre.id)}
                 class="text-red-600 hover:text-red-800 font-medium"
               >
                 削除
@@ -121,14 +141,15 @@ export default function GenreList(
             {truncateText(genre.kana, 20)}
           </td>
           <td class="p-4 text-center space-x-2 w-32">
-            <button
-              type="button"
+            <a
+              href={`/admin/genres/${encodeURIComponent(genre.code)}`}
               class="text-blue-600 hover:text-blue-800 font-medium"
             >
               編集
-            </button>
+            </a>
             <button
               type="button"
+              onClick={() => void handleDelete(genre.id)}
               class="text-red-600 hover:text-red-800 font-medium"
             >
               削除

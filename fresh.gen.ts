@@ -6,28 +6,51 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
+import * as $admin_admins_id_ from "./routes/admin/admins/[id].tsx";
+import * as $admin_admins_create from "./routes/admin/admins/create.tsx";
 import * as $admin_admins_index from "./routes/admin/admins/index.tsx";
+import * as $admin_games_code_ from "./routes/admin/games/[code].tsx";
+import * as $admin_games_create from "./routes/admin/games/create.tsx";
 import * as $admin_games_index from "./routes/admin/games/index.tsx";
+import * as $admin_genres_code_ from "./routes/admin/genres/[code].tsx";
+import * as $admin_genres_create from "./routes/admin/genres/create.tsx";
 import * as $admin_genres_index from "./routes/admin/genres/index.tsx";
 import * as $admin_index from "./routes/admin/index.tsx";
+import * as $admin_keywords_code_ from "./routes/admin/keywords/[code].tsx";
+import * as $admin_keywords_id_edit from "./routes/admin/keywords/[id]/edit.tsx";
+import * as $admin_keywords_create from "./routes/admin/keywords/create.tsx";
 import * as $admin_keywords_index from "./routes/admin/keywords/index.tsx";
 import * as $admin_login from "./routes/admin/login.tsx";
+import * as $admin_machines_code_ from "./routes/admin/machines/[code].tsx";
+import * as $admin_machines_create from "./routes/admin/machines/create.tsx";
 import * as $admin_machines_index from "./routes/admin/machines/index.tsx";
+import * as $admin_manufacturers_code_ from "./routes/admin/manufacturers/[code].tsx";
 import * as $admin_manufacturers_layout from "./routes/admin/manufacturers/_layout.tsx";
+import * as $admin_manufacturers_create from "./routes/admin/manufacturers/create.tsx";
 import * as $admin_manufacturers_index from "./routes/admin/manufacturers/index.tsx";
+import * as $admin_users_id_ from "./routes/admin/users/[id].tsx";
+import * as $admin_users_create from "./routes/admin/users/create.tsx";
 import * as $admin_users_index from "./routes/admin/users/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AdminHeader from "./islands/AdminHeader.tsx";
 import * as $admin_AdminHeader from "./islands/admin/AdminHeader.tsx";
+import * as $admin_admins_AdminForm from "./islands/admin/admins/AdminForm.tsx";
 import * as $admin_admins_AdminList from "./islands/admin/admins/AdminList.tsx";
 import * as $admin_auth_LoginForm from "./islands/admin/auth/LoginForm.tsx";
 import * as $admin_auth_LogoutButton from "./islands/admin/auth/LogoutButton.tsx";
 import * as $admin_common_PaginatedResourceTable from "./islands/admin/common/PaginatedResourceTable.tsx";
+import * as $admin_games_GameCreateForm from "./islands/admin/games/GameCreateForm.tsx";
+import * as $admin_games_GameForm from "./islands/admin/games/GameForm.tsx";
 import * as $admin_games_GameList from "./islands/admin/games/GameList.tsx";
+import * as $admin_genres_GenreForm from "./islands/admin/genres/GenreForm.tsx";
 import * as $admin_genres_GenreList from "./islands/admin/genres/GenreList.tsx";
+import * as $admin_keywords_KeywordForm from "./islands/admin/keywords/KeywordForm.tsx";
 import * as $admin_keywords_KeywordList from "./islands/admin/keywords/KeywordList.tsx";
+import * as $admin_machines_MachineForm from "./islands/admin/machines/MachineForm.tsx";
 import * as $admin_machines_MachineList from "./islands/admin/machines/MachineList.tsx";
+import * as $admin_manufacturers_ManufacturerForm from "./islands/admin/manufacturers/ManufacturerForm.tsx";
 import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufacturers/ManufacturerList.tsx";
+import * as $admin_users_UserForm from "./islands/admin/users/UserForm.tsx";
 import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
@@ -39,32 +62,56 @@ const manifest = {
     "./routes/_app.tsx": $_app,
     "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
+    "./routes/admin/admins/[id].tsx": $admin_admins_id_,
+    "./routes/admin/admins/create.tsx": $admin_admins_create,
     "./routes/admin/admins/index.tsx": $admin_admins_index,
+    "./routes/admin/games/[code].tsx": $admin_games_code_,
+    "./routes/admin/games/create.tsx": $admin_games_create,
     "./routes/admin/games/index.tsx": $admin_games_index,
+    "./routes/admin/genres/[code].tsx": $admin_genres_code_,
+    "./routes/admin/genres/create.tsx": $admin_genres_create,
     "./routes/admin/genres/index.tsx": $admin_genres_index,
     "./routes/admin/index.tsx": $admin_index,
+    "./routes/admin/keywords/[code].tsx": $admin_keywords_code_,
+    "./routes/admin/keywords/[id]/edit.tsx": $admin_keywords_id_edit,
+    "./routes/admin/keywords/create.tsx": $admin_keywords_create,
     "./routes/admin/keywords/index.tsx": $admin_keywords_index,
     "./routes/admin/login.tsx": $admin_login,
+    "./routes/admin/machines/[code].tsx": $admin_machines_code_,
+    "./routes/admin/machines/create.tsx": $admin_machines_create,
     "./routes/admin/machines/index.tsx": $admin_machines_index,
+    "./routes/admin/manufacturers/[code].tsx": $admin_manufacturers_code_,
     "./routes/admin/manufacturers/_layout.tsx": $admin_manufacturers_layout,
+    "./routes/admin/manufacturers/create.tsx": $admin_manufacturers_create,
     "./routes/admin/manufacturers/index.tsx": $admin_manufacturers_index,
+    "./routes/admin/users/[id].tsx": $admin_users_id_,
+    "./routes/admin/users/create.tsx": $admin_users_create,
     "./routes/admin/users/index.tsx": $admin_users_index,
     "./routes/index.tsx": $index,
   },
   islands: {
     "./islands/AdminHeader.tsx": $AdminHeader,
     "./islands/admin/AdminHeader.tsx": $admin_AdminHeader,
+    "./islands/admin/admins/AdminForm.tsx": $admin_admins_AdminForm,
     "./islands/admin/admins/AdminList.tsx": $admin_admins_AdminList,
     "./islands/admin/auth/LoginForm.tsx": $admin_auth_LoginForm,
     "./islands/admin/auth/LogoutButton.tsx": $admin_auth_LogoutButton,
     "./islands/admin/common/PaginatedResourceTable.tsx":
       $admin_common_PaginatedResourceTable,
+    "./islands/admin/games/GameCreateForm.tsx": $admin_games_GameCreateForm,
+    "./islands/admin/games/GameForm.tsx": $admin_games_GameForm,
     "./islands/admin/games/GameList.tsx": $admin_games_GameList,
+    "./islands/admin/genres/GenreForm.tsx": $admin_genres_GenreForm,
     "./islands/admin/genres/GenreList.tsx": $admin_genres_GenreList,
+    "./islands/admin/keywords/KeywordForm.tsx": $admin_keywords_KeywordForm,
     "./islands/admin/keywords/KeywordList.tsx": $admin_keywords_KeywordList,
+    "./islands/admin/machines/MachineForm.tsx": $admin_machines_MachineForm,
     "./islands/admin/machines/MachineList.tsx": $admin_machines_MachineList,
+    "./islands/admin/manufacturers/ManufacturerForm.tsx":
+      $admin_manufacturers_ManufacturerForm,
     "./islands/admin/manufacturers/ManufacturerList.tsx":
       $admin_manufacturers_ManufacturerList,
+    "./islands/admin/users/UserForm.tsx": $admin_users_UserForm,
     "./islands/admin/users/UserList.tsx": $admin_users_UserList,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,

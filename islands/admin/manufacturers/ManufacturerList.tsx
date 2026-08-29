@@ -6,6 +6,7 @@ import type { ComponentChildren } from "preact";
 
 interface Manufacturer {
   id: number;
+  code: string;
   name: string;
   kana: string;
 }
@@ -19,6 +20,24 @@ interface Props {
 export default function ManufacturerList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
+  const handleDelete = async (id: number) => {
+    const confirmed = globalThis.confirm(
+      "このメーカーを削除してもよろしいですか？",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await adminFetch(`/admin/manufacturers/${id}`, { method: "DELETE" });
+      globalThis.location.reload();
+    } catch (error) {
+      globalThis.alert(
+        error instanceof Error ? error.message : "削除に失敗しました。",
+      );
+    }
+  };
+
   const createButton = (createHref && showCreate)
     ? (
       <a
@@ -81,14 +100,17 @@ export default function ManufacturerList(
               </h3>
             </div>
             <div class="flex items-center gap-3 text-sm shrink-0">
-              <button
-                type="button"
+              <a
+                href={`/admin/manufacturers/${
+                  encodeURIComponent(manufacturer.code)
+                }`}
                 class="text-blue-600 hover:text-blue-800 font-medium"
               >
                 編集
-              </button>
+              </a>
               <button
                 type="button"
+                onClick={() => void handleDelete(manufacturer.id)}
                 class="text-red-600 hover:text-red-800 font-medium"
               >
                 削除
@@ -121,14 +143,17 @@ export default function ManufacturerList(
             {truncateText(manufacturer.kana, 20)}
           </td>
           <td class="p-4 text-center space-x-2 w-32">
-            <button
-              type="button"
+            <a
+              href={`/admin/manufacturers/${
+                encodeURIComponent(manufacturer.code)
+              }`}
               class="text-blue-600 hover:text-blue-800 font-medium"
             >
               編集
-            </button>
+            </a>
             <button
               type="button"
+              onClick={() => void handleDelete(manufacturer.id)}
               class="text-red-600 hover:text-red-800 font-medium"
             >
               削除

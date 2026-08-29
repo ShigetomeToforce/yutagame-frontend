@@ -8,6 +8,7 @@ import type { ComponentChildren } from "preact";
 
 interface Game {
   id: number;
+  code: string;
   name: string;
   kana?: string;
   manufacturerName?: string;
@@ -43,6 +44,24 @@ const triggerSearchRefresh = () => {
 export default function GameList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
+  const handleDelete = async (id: number) => {
+    const confirmed = globalThis.confirm(
+      "このゲームを削除してもよろしいですか？",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await adminFetch(`/admin/games/${id}`, { method: "DELETE" });
+      globalThis.location.reload();
+    } catch (error) {
+      globalThis.alert(
+        error instanceof Error ? error.message : "削除に失敗しました。",
+      );
+    }
+  };
+
   const manufacturers = useSignal<OptionItem[]>([]);
   const machines = useSignal<OptionItem[]>([]);
   const genres = useSignal<OptionItem[]>([]);
@@ -517,14 +536,15 @@ export default function GameList(
               </h3>
             </div>
             <div class="flex items-center gap-3 text-sm shrink-0">
-              <button
-                type="button"
+              <a
+                href={`/admin/games/${encodeURIComponent(game.code)}`}
                 class="text-blue-600 hover:text-blue-800 font-medium"
               >
                 編集
-              </button>
+              </a>
               <button
                 type="button"
+                onClick={() => void handleDelete(game.id)}
                 class="text-red-600 hover:text-red-800 font-medium"
               >
                 削除
@@ -588,14 +608,15 @@ export default function GameList(
             {formatDate(game.releaseDate)}
           </td>
           <td class="p-4 text-center space-x-2 w-32">
-            <button
-              type="button"
+            <a
+              href={`/admin/games/${encodeURIComponent(game.code)}`}
               class="text-blue-600 hover:text-blue-800 font-medium"
             >
               編集
-            </button>
+            </a>
             <button
               type="button"
+              onClick={() => void handleDelete(game.id)}
               class="text-red-600 hover:text-red-800 font-medium"
             >
               削除
