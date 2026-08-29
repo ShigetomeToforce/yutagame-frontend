@@ -23,6 +23,7 @@ interface PaginatedResourceTableProps<T> {
   renderDesktopRow: (item: T) => ComponentChildren;
   initialLimit?: number;
   rightActions?: ComponentChildren;
+  searchExtras?: ComponentChildren;
 }
 
 const PAGE_OPTIONS = [10, 30, 50];
@@ -43,6 +44,7 @@ export default function PaginatedResourceTable<T>({
   renderDesktopRow,
   initialLimit = 10,
   rightActions,
+  searchExtras,
 }: PaginatedResourceTableProps<T>) {
   const items = useSignal<T[]>([]);
   const error = useSignal("");
@@ -54,6 +56,7 @@ export default function PaginatedResourceTable<T>({
   const totalCount = useSignal(0);
   const totalPages = useSignal(0);
   const pageInput = useSignal("1");
+  const showAdvancedSearch = useSignal(false);
 
   const loadPage = async (
     nextPage: number,
@@ -138,31 +141,56 @@ export default function PaginatedResourceTable<T>({
   return (
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="py-4 border-b border-gray-200 bg-gray-50">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <form
-            class="flex w-full flex-1 gap-3 items-center"
-            onSubmit={handleSearchSubmit}
-          >
-            <input
-              type="text"
-              value={searchInput.value}
-              onInput={(
-                e,
-              ) => (searchInput.value = (e.target as HTMLInputElement).value)}
-              placeholder={searchPlaceholder}
-              class="w-full flex-1 md:max-w-2xl border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <form
+              class="flex w-full flex-1 gap-3 items-center"
+              onSubmit={handleSearchSubmit}
             >
-              検索
-            </button>
-          </form>
+              <input
+                type="text"
+                value={searchInput.value}
+                onInput={(
+                  e,
+                ) => (searchInput.value = (e.target as HTMLInputElement).value)}
+                placeholder={searchPlaceholder}
+                class="w-full flex-1 md:max-w-2xl border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
+              >
+                検索
+              </button>
+            </form>
 
-          {rightActions && (
-            <div class="flex-shrink-0 flex items-center justify-end">
-              {rightActions}
+            {rightActions && (
+              <div class="flex-shrink-0 flex items-center justify-end">
+                {rightActions}
+              </div>
+            )}
+          </div>
+
+          {searchExtras && (
+            <div class="w-full">
+              <button
+                type="button"
+                onClick={() => (showAdvancedSearch.value = !showAdvancedSearch.value)}
+                class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                <span
+                  class={showAdvancedSearch.value ? "inline-block transition-transform rotate-90" : "inline-block transition-transform"}
+                >
+                  ▶
+                </span>
+                <span>詳細検索</span>
+              </button>
+
+              {showAdvancedSearch.value && (
+                <div class="mt-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm">
+                  {searchExtras}
+                </div>
+              )}
             </div>
           )}
         </div>
