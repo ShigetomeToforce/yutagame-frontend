@@ -2,7 +2,7 @@
 const isServer = typeof Deno !== "undefined";
 
 // 💡 環境変数から管理画面用・アプリ用のURLをそれぞれ取得（なければローカルをフォールバック）
-const ADMIN_BASE_URL = isServer
+export const ADMIN_BASE_URL = isServer
   ? Deno.env.get("ADMIN_BASE_URL") || "http://localhost:8080/api"
   : "http://localhost:8080/api";
 
@@ -38,9 +38,12 @@ export async function adminFetch<T = any>(
     : `/${endpoint}`;
   const url = `${ADMIN_BASE_URL}${formattedEndpoint}`;
   const token = getAdminToken();
+  const isFormDataBody = options.body instanceof FormData;
 
   const headers = new Headers(options.headers || {});
-  headers.set("Content-Type", "application/json");
+  if (!isFormDataBody) {
+    headers.set("Content-Type", "application/json");
+  }
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }

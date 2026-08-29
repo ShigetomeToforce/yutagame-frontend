@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 import { adminFetch } from "../../../utils/api.ts";
+import { buildImageUrl } from "../../../utils/image.ts";
 
 interface ManufacturerRecord {
   id: number;
@@ -8,6 +9,7 @@ interface ManufacturerRecord {
   kana: string;
   overview: string;
   code: string;
+  imageKey?: string | null;
 }
 
 interface ManufacturerFormState {
@@ -37,6 +39,9 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
   const submitError = useSignal("");
   const isSubmitting = useSignal(false);
   const isLoading = useSignal(mode === "edit");
+  const imageKey = useSignal<string | null>(null);
+  const selectedImageFile = useSignal<File | null>(null);
+  const previewImageUrl = useSignal<string | null>(null);
 
   useEffect(() => {
     if (mode !== "edit") {
@@ -61,6 +66,7 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
           overview: manufacturer.overview ?? "",
           code: manufacturer.code ?? "",
         };
+        imageKey.value = manufacturer.imageKey ?? null;
       } catch (error) {
         submitError.value = error instanceof Error
           ? error.message
@@ -80,6 +86,67 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
       return "コードは半角英数字・ハイフン・アンダーバーのみで入力してください。";
     }
     return "";
+  };
+
+  const clearPreviewUrl = () => {
+    if (previewImageUrl.value?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewImageUrl.value);
+    }
+    previewImageUrl.value = null;
+  };
+
+  const handleSelectImage = (event: Event) => {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    selectedImageFile.value = file;
+    clearPreviewUrl();
+    if (file) {
+      previewImageUrl.value = URL.createObjectURL(file);
+    }
+  };
+
+  const uploadImageIfNeeded = async (id: number) => {
+    if (!selectedImageFile.value) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", selectedImageFile.value);
+
+    const response = await adminFetch<{ imageKey: string }>(
+      `/admin/manufacturers/${id}/image`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    imageKey.value = response.imageKey;
+    selectedImageFile.value = null;
+    clearPreviewUrl();
+  };
+
+  const handleDeleteImage = async () => {
+    if (manufacturerId.value === null) {
+      return;
+    }
+
+    const confirmed = globalThis.confirm("登録されている画像を削除しますか？");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await adminFetch(`/admin/manufacturers/${manufacturerId.value}/image`, {
+        method: "DELETE",
+      });
+      imageKey.value = null;
+      selectedImageFile.value = null;
+      clearPreviewUrl();
+    } catch (error) {
+      submitError.value = error instanceof Error
+        ? error.message
+        : "画像の削除に失敗しました。";
+    }
   };
 
   const handleSubmit = async (event: Event) => {
@@ -112,10 +179,12 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
         : "/admin/manufacturers";
       const method = mode === "edit" ? "PUT" : "POST";
 
-      await adminFetch(endpoint, {
+      const savedManufacturer = await adminFetch<ManufacturerRecord>(endpoint, {
         method,
         body: JSON.stringify(payload),
       });
+
+      await uploadImageIfNeeded(savedManufacturer.id);
 
       globalThis.location.href = "/admin/manufacturers";
     } catch (error) {
@@ -247,7 +316,7 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
               required
             />
           </div>
-          <div class="space-y-2 md:col-span-2">
+          <div class="space-y-2 md:col-span-1">
             <label class="block text-sm font-medium text-gray-700">
               概要<span class="ml-1 text-red-500">*</span>
             </label>
@@ -261,9 +330,46 @@ export default function ManufacturerForm({ mode, manufacturerCode }: Props) {
                 ...form.value,
                 overview: (e.target as HTMLTextAreaElement).value,
               })}
-              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="min-h-[240px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
+          </div>
+
+          <div class="space-y-3 md:col-span-1">
+            <label class="block text-sm font-medium text-gray-700">
+              画像（任意）
+            </label>
+            <div class="flex min-h-[240px] items-start justify-start overflow-hidden">
+              <img
+                src={previewImageUrl.value ??
+                  buildImageUrl(imageKey.value, "manufacturers")}
+                alt="メーカー画像"
+                class="max-h-[240px] w-auto object-contain"
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleSelectImage}
+                class="block text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {mode === "edit" && imageKey.value && (
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteImage()}
+                  class="inline-flex items-center justify-center rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                >
+                  登録画像を解除
+                </button>
+              )}
+            </div>
+            {selectedImageFile.value && (
+              <p class="text-xs text-gray-500">
+                選択中:{" "}
+                {selectedImageFile.value.name}（保存時にアップロードされます）
+              </p>
+            )}
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
