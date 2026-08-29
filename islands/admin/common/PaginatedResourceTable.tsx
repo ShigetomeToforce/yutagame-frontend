@@ -191,11 +191,14 @@ export default function PaginatedResourceTable<T>({
             <div class="w-full">
               <button
                 type="button"
-                onClick={() => (showAdvancedSearch.value = !showAdvancedSearch.value)}
+                onClick={() => (showAdvancedSearch.value = !showAdvancedSearch
+                  .value)}
                 class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
                 <span
-                  class={showAdvancedSearch.value ? "inline-block transition-transform rotate-90" : "inline-block transition-transform"}
+                  class={showAdvancedSearch.value
+                    ? "inline-block transition-transform rotate-90"
+                    : "inline-block transition-transform"}
                 >
                   ▶
                 </span>
@@ -209,6 +212,13 @@ export default function PaginatedResourceTable<T>({
               )}
             </div>
           )}
+
+          <div class="px-1 text-sm text-gray-600">
+            検索結果：
+            <span class="ml-1 font-semibold text-gray-900">
+              {totalCount.value}件
+            </span>
+          </div>
         </div>
       </div>
 
