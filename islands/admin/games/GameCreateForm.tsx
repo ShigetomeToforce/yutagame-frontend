@@ -544,7 +544,7 @@ export default function GameCreateForm() {
               <textarea
                 value={form.value.overview}
                 maxLength={1000}
-                rows={4}
+                rows={6}
                 onInput={(event) =>
                   updateField(
                     "overview",

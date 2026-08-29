@@ -122,16 +122,6 @@ export default function UserForm({ mode, userId }: Props) {
       <div class="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div class="flex min-w-0 items-center gap-3">
-            {mode === "edit" && typeof userId === "number" && (
-              <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5">
-                <div class="text-[10px] font-medium uppercase tracking-wide text-gray-500">
-                  ID
-                </div>
-                <div class="font-mono text-sm font-bold text-gray-800">
-                  {userId}
-                </div>
-              </div>
-            )}
             <h1 class="text-xl font-bold text-gray-900 sm:text-2xl">
               {mode === "edit" ? "ユーザー編集" : "ユーザー新規登録"}
             </h1>
@@ -173,6 +163,20 @@ export default function UserForm({ mode, userId }: Props) {
         )}
 
         <div class="grid gap-6 md:grid-cols-2">
+          {mode === "edit" && typeof userId === "number" && (
+            <div class="space-y-2 md:col-span-2">
+              <div class="flex items-center gap-3">
+                <label class="text-sm font-medium text-gray-700">ID</label>
+                <input
+                  type="text"
+                  value={String(userId)}
+                  readOnly
+                  class="w-24 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-700 sm:w-32"
+                />
+              </div>
+            </div>
+          )}
+
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
               名前<span class="ml-1 text-red-500">*</span>
@@ -235,7 +239,7 @@ export default function UserForm({ mode, userId }: Props) {
         </div>
 
         {mode === "edit" && (
-          <div class="border-t border-gray-200 pt-6">
+          <div class="flex justify-end border-t border-gray-200 pt-12">
             <button
               type="button"
               onClick={handleDelete}

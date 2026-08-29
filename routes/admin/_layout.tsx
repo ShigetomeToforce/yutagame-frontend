@@ -96,7 +96,7 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
 
       <div class="min-h-screen bg-gray-50 flex">
         {/* 左側：サイドバーをページ上部まで貫通させる（常時表示） */}
-        <aside class="hidden md:block w-64 bg-white border-r border-gray-200 p-6 flex-shrink-0 h-screen">
+        <aside class="hidden md:block w-64 bg-white border-r border-gray-200 p-6 flex-shrink-0 self-stretch">
           <div class="text-sm font-semibold text-gray-700 mb-4 px-1 truncate">
             ⚙️ {serviceName} 管理画面
           </div>

@@ -44,7 +44,7 @@ export default function UserList(
         href={createHref}
         class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded text-sm transition-colors shadow flex items-center gap-1"
       >
-        <span>➕</span> 新規登録
+        新規登録 <span>➕</span>
       </a>
     )
     : undefined;
