@@ -6,7 +6,7 @@ export const ADMIN_BASE_URL = isServer
   ? Deno.env.get("ADMIN_BASE_URL") || "http://localhost:8080/api"
   : "http://localhost:8080/api";
 
-const APP_BASE_URL = isServer
+export const APP_BASE_URL = isServer
   ? Deno.env.get("APP_BASE_URL") || "http://localhost:8080/api"
   : "http://localhost:8080/api";
 

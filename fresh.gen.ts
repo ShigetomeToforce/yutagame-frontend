@@ -31,6 +31,8 @@ import * as $admin_manufacturers_index from "./routes/admin/manufacturers/index.
 import * as $admin_users_id_ from "./routes/admin/users/[id].tsx";
 import * as $admin_users_create from "./routes/admin/users/create.tsx";
 import * as $admin_users_index from "./routes/admin/users/index.tsx";
+import * as $app_games_code_ from "./routes/app/games/[code].tsx";
+import * as $app_games_index from "./routes/app/games/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AdminHeader from "./islands/AdminHeader.tsx";
 import * as $admin_AdminHeader from "./islands/admin/AdminHeader.tsx";
@@ -52,6 +54,7 @@ import * as $admin_manufacturers_ManufacturerForm from "./islands/admin/manufact
 import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufacturers/ManufacturerList.tsx";
 import * as $admin_users_UserForm from "./islands/admin/users/UserForm.tsx";
 import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
+import * as $app_GameSearchExplorer from "./islands/app/GameSearchExplorer.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -87,6 +90,8 @@ const manifest = {
     "./routes/admin/users/[id].tsx": $admin_users_id_,
     "./routes/admin/users/create.tsx": $admin_users_create,
     "./routes/admin/users/index.tsx": $admin_users_index,
+    "./routes/app/games/[code].tsx": $app_games_code_,
+    "./routes/app/games/index.tsx": $app_games_index,
     "./routes/index.tsx": $index,
   },
   islands: {
@@ -113,6 +118,7 @@ const manifest = {
       $admin_manufacturers_ManufacturerList,
     "./islands/admin/users/UserForm.tsx": $admin_users_UserForm,
     "./islands/admin/users/UserList.tsx": $admin_users_UserList,
+    "./islands/app/GameSearchExplorer.tsx": $app_GameSearchExplorer,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,
   },
