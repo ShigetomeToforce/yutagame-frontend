@@ -1,4 +1,5 @@
 import { adminFetch } from "../../../utils/api.ts";
+import CsvImportExportActions from "../common/CsvImportExportActions.tsx";
 import PaginatedResourceTable, {
   type PaginatedResponse,
 } from "../common/PaginatedResourceTable.tsx";
@@ -16,6 +17,13 @@ interface Props {
   createHref?: string;
   showCreate?: boolean;
 }
+
+const EXPORT_COLUMNS = [
+  { key: "name", label: "名前" },
+  { key: "kana", label: "カナ" },
+  { key: "overview", label: "概要" },
+  { key: "code", label: "コード" },
+] as const;
 
 export default function ManufacturerList(
   { rightActions, createHref, showCreate = true }: Props,
@@ -49,7 +57,18 @@ export default function ManufacturerList(
     )
     : undefined;
 
-  const actions = rightActions ?? createButton;
+  const actions = rightActions ?? (
+    <CsvImportExportActions
+      resourceLabel="メーカー"
+      fileNamePrefix="manufacturers"
+      exportEndpoint="/admin/manufacturers/export"
+      previewEndpoint="/admin/manufacturers/import/preview"
+      applyEndpoint="/admin/manufacturers/import/apply"
+      exportColumns={[...EXPORT_COLUMNS]}
+      defaultSelectedColumns={["name", "kana", "overview", "code"]}
+      trailingAction={createButton}
+    />
+  );
 
   const truncateText = (
     value: string | number | undefined,

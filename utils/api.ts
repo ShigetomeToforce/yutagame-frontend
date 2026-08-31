@@ -1,14 +1,118 @@
 // 💡 ブラウザ側（Denoがいない世界）でも落ちないように安全に環境変数を取得する
 const isServer = typeof Deno !== "undefined";
 
+function normalizeApiBaseUrl(rawUrl: string, fallbackUrl: string): string {
+  const source = (rawUrl || fallbackUrl).trim();
+
+  try {
+    const url = new URL(source);
+    const path = url.pathname.replace(/\/+$/, "");
+
+    // 末尾に /api がなければ付与する（例: http://localhost:8080 -> http://localhost:8080/api）
+    if (path === "" || path === "/") {
+      url.pathname = "/api";
+    } else if (!path.endsWith("/api")) {
+      url.pathname = `${path}/api`;
+    } else {
+      url.pathname = path;
+    }
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return fallbackUrl;
+  }
+}
+
 // 💡 環境変数から管理画面用・アプリ用のURLをそれぞれ取得（なければローカルをフォールバック）
 export const ADMIN_BASE_URL = isServer
-  ? Deno.env.get("ADMIN_BASE_URL") || "http://localhost:8080/api"
+  ? normalizeApiBaseUrl(
+    Deno.env.get("ADMIN_BASE_URL") || "",
+    "http://localhost:8080/api",
+  )
   : "http://localhost:8080/api";
 
 export const APP_BASE_URL = isServer
-  ? Deno.env.get("APP_BASE_URL") || "http://localhost:8080/api"
+  ? normalizeApiBaseUrl(
+    Deno.env.get("APP_BASE_URL") || "",
+    "http://localhost:8080/api",
+  )
   : "http://localhost:8080/api";
+
+function formatAdminUrl(endpoint: string): string {
+  const formattedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  return `${ADMIN_BASE_URL}${formattedEndpoint}`;
+}
+
+function buildAdminBaseCandidates(): string[] {
+  const candidates: string[] = [];
+  const add = (base: string) => {
+    const normalized = normalizeApiBaseUrl(base, "http://localhost:8080/api");
+    if (!candidates.includes(normalized)) {
+      candidates.push(normalized);
+    }
+  };
+
+  add(ADMIN_BASE_URL);
+
+  // 何らかの理由で 8000 に向いてしまった場合の救済
+  add(ADMIN_BASE_URL.replace(":8000", ":8080"));
+
+  // 最終フォールバック
+  add("http://localhost:8080/api");
+  add("http://127.0.0.1:8080/api");
+
+  return candidates;
+}
+
+// 管理画面APIへ生のResponseを返すダウンロード用途ヘルパー
+export async function adminFetchRaw(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const token = getAdminToken();
+  const isFormDataBody = options.body instanceof FormData;
+
+  const headers = new Headers(options.headers || {});
+  if (!isFormDataBody && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const formattedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+
+  const baseCandidates = buildAdminBaseCandidates();
+  let lastResponse: Response | null = null;
+
+  for (const base of baseCandidates) {
+    const res = await fetch(`${base}${formattedEndpoint}`, {
+      ...options,
+      headers,
+    });
+    lastResponse = res;
+
+    if (res.status === 401 && !endpoint.includes("/admin/login")) {
+      globalThis.location.href = "/admin/login";
+      return new Promise(() => {});
+    }
+
+    // 404のときは次の候補を試す
+    if (res.status === 404) {
+      continue;
+    }
+
+    return res;
+  }
+
+  // すべて404だった場合は最後のレスポンスを返す
+  return lastResponse ??
+    await fetch(formatAdminUrl(endpoint), { ...options, headers });
+}
 
 export function getAdminToken(): string | null {
   if (typeof globalThis.document === "undefined") return null;
@@ -33,31 +137,7 @@ export async function adminFetch<T = any>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const formattedEndpoint = endpoint.startsWith("/")
-    ? endpoint
-    : `/${endpoint}`;
-  const url = `${ADMIN_BASE_URL}${formattedEndpoint}`;
-  const token = getAdminToken();
-  const isFormDataBody = options.body instanceof FormData;
-
-  const headers = new Headers(options.headers || {});
-  if (!isFormDataBody) {
-    headers.set("Content-Type", "application/json");
-  }
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  // ① 通信を実行
-  const res = await fetch(url, { ...options, headers });
-
-  // 🛑 ② 【共通処理】ログイン切れ（401）なら、画面側を煩わせずここで即座にリダイレクト！
-  // ✨ ただし、ログインAPI自体（/admin/login）を叩いている時は、画面にエラーを出したいのでリダイレクトをスルーします。
-  if (res.status === 401 && !endpoint.includes("/admin/login")) {
-    globalThis.location.href = "/admin/login";
-    // 画面が切り替わるまでの間、以降の処理が進まないように未解決のPromiseを返してストップさせる
-    return new Promise(() => {});
-  }
+  const res = await adminFetchRaw(endpoint, options);
 
   // 💥 ③ 【共通処理】エラー（400や500など）の場合
   if (!res.ok) {

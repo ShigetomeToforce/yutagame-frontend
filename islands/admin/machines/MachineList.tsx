@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 import { adminFetch } from "../../../utils/api.ts";
+import CsvImportExportActions from "../common/CsvImportExportActions.tsx";
 import PaginatedResourceTable, {
   type PaginatedResponse,
 } from "../common/PaginatedResourceTable.tsx";
@@ -30,6 +31,18 @@ interface ManufacturerOption {
   id: number;
   name: string;
 }
+
+const EXPORT_COLUMNS = [
+  { key: "name", label: "名前" },
+  { key: "kana", label: "カナ" },
+  { key: "overview", label: "概要" },
+  { key: "code", label: "コード" },
+  { key: "abbreviation", label: "略称" },
+  { key: "manufacturer_id", label: "メーカーID" },
+  { key: "machine_type", label: "機種種別" },
+  { key: "release_date", label: "発売日" },
+  { key: "sort_order", label: "並び順" },
+] as const;
 
 export default function MachineList(
   { rightActions, createHref, showCreate = true }: Props,
@@ -86,7 +99,28 @@ export default function MachineList(
     )
     : undefined;
 
-  const actions = rightActions ?? createButton;
+  const actions = rightActions ?? (
+    <CsvImportExportActions
+      resourceLabel="機種"
+      fileNamePrefix="machines"
+      exportEndpoint="/admin/machines/export"
+      previewEndpoint="/admin/machines/import/preview"
+      applyEndpoint="/admin/machines/import/apply"
+      exportColumns={[...EXPORT_COLUMNS]}
+      defaultSelectedColumns={[
+        "name",
+        "kana",
+        "overview",
+        "code",
+        "abbreviation",
+        "manufacturer_id",
+        "machine_type",
+        "release_date",
+        "sort_order",
+      ]}
+      trailingAction={createButton}
+    />
+  );
 
   const truncateText = (
     value: string | number | undefined,

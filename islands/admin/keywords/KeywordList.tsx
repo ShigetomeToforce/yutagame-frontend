@@ -1,4 +1,5 @@
 import { adminFetch } from "../../../utils/api.ts";
+import CsvImportExportActions from "../common/CsvImportExportActions.tsx";
 import PaginatedResourceTable, {
   type PaginatedResponse,
 } from "../common/PaginatedResourceTable.tsx";
@@ -17,6 +18,15 @@ interface Props {
   createHref?: string;
   showCreate?: boolean;
 }
+
+const EXPORT_COLUMNS = [
+  { key: "name", label: "名前" },
+  { key: "kana", label: "カナ" },
+  { key: "overview", label: "概要" },
+  { key: "code", label: "コード" },
+  { key: "keyword_type", label: "種別" },
+  { key: "sort_order", label: "並び順" },
+] as const;
 
 export default function KeywordList(
   { rightActions, createHref, showCreate = true }: Props,
@@ -50,7 +60,25 @@ export default function KeywordList(
     )
     : undefined;
 
-  const actions = rightActions ?? createButton;
+  const actions = rightActions ?? (
+    <CsvImportExportActions
+      resourceLabel="キーワード"
+      fileNamePrefix="keywords"
+      exportEndpoint="/admin/keywords/export"
+      previewEndpoint="/admin/keywords/import/preview"
+      applyEndpoint="/admin/keywords/import/apply"
+      exportColumns={[...EXPORT_COLUMNS]}
+      defaultSelectedColumns={[
+        "name",
+        "kana",
+        "overview",
+        "code",
+        "keyword_type",
+        "sort_order",
+      ]}
+      trailingAction={createButton}
+    />
+  );
 
   const truncateText = (
     value: string | number | undefined,

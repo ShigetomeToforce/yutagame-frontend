@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 import { adminFetch } from "../../../utils/api.ts";
+import CsvImportExportActions from "../common/CsvImportExportActions.tsx";
 import PaginatedResourceTable, {
   type PaginatedResponse,
 } from "../common/PaginatedResourceTable.tsx";
@@ -32,6 +33,26 @@ interface Props {
   createHref?: string;
   showCreate?: boolean;
 }
+
+const EXPORT_COLUMNS = [
+  { key: "name", label: "名前" },
+  { key: "kana", label: "カナ" },
+  { key: "overview", label: "概要" },
+  { key: "code", label: "コード" },
+  { key: "manufacturer_id", label: "メーカーID" },
+  { key: "machine_id", label: "機種ID" },
+  { key: "genre_id", label: "ジャンルID" },
+  { key: "sub_genre", label: "サブジャンル" },
+  { key: "catch_copy", label: "キャッチコピー" },
+  { key: "sub_catch", label: "サブキャッチ" },
+  { key: "list_price", label: "価格" },
+  { key: "release_date", label: "発売日" },
+  { key: "official_site_url", label: "公式URL" },
+  { key: "youtube_url", label: "YouTube URL" },
+  { key: "is_play", label: "プレイ済み" },
+  { key: "is_clear", label: "クリア済み" },
+  { key: "is_favourite", label: "お気に入り" },
+] as const;
 
 const SEARCH_REFRESH_EVENT = "resource-table-search";
 
@@ -141,7 +162,36 @@ export default function GameList(
     )
     : undefined;
 
-  const actions = rightActions ?? createButton;
+  const actions = rightActions ?? (
+    <CsvImportExportActions
+      resourceLabel="ゲーム"
+      fileNamePrefix="games"
+      exportEndpoint="/admin/games/export"
+      previewEndpoint="/admin/games/import/preview"
+      applyEndpoint="/admin/games/import/apply"
+      exportColumns={[...EXPORT_COLUMNS]}
+      defaultSelectedColumns={[
+        "name",
+        "kana",
+        "overview",
+        "code",
+        "manufacturer_id",
+        "machine_id",
+        "genre_id",
+        "sub_genre",
+        "catch_copy",
+        "sub_catch",
+        "list_price",
+        "release_date",
+        "official_site_url",
+        "youtube_url",
+        "is_play",
+        "is_clear",
+        "is_favourite",
+      ]}
+      trailingAction={createButton}
+    />
+  );
 
   const truncateText = (
     value: string | number | undefined,

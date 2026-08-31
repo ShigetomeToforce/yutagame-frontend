@@ -40,6 +40,7 @@ import * as $admin_admins_AdminForm from "./islands/admin/admins/AdminForm.tsx";
 import * as $admin_admins_AdminList from "./islands/admin/admins/AdminList.tsx";
 import * as $admin_auth_LoginForm from "./islands/admin/auth/LoginForm.tsx";
 import * as $admin_auth_LogoutButton from "./islands/admin/auth/LogoutButton.tsx";
+import * as $admin_common_CsvImportExportActions from "./islands/admin/common/CsvImportExportActions.tsx";
 import * as $admin_common_PaginatedResourceTable from "./islands/admin/common/PaginatedResourceTable.tsx";
 import * as $admin_games_GameCreateForm from "./islands/admin/games/GameCreateForm.tsx";
 import * as $admin_games_GameForm from "./islands/admin/games/GameForm.tsx";
@@ -101,6 +102,8 @@ const manifest = {
     "./islands/admin/admins/AdminList.tsx": $admin_admins_AdminList,
     "./islands/admin/auth/LoginForm.tsx": $admin_auth_LoginForm,
     "./islands/admin/auth/LogoutButton.tsx": $admin_auth_LogoutButton,
+    "./islands/admin/common/CsvImportExportActions.tsx":
+      $admin_common_CsvImportExportActions,
     "./islands/admin/common/PaginatedResourceTable.tsx":
       $admin_common_PaginatedResourceTable,
     "./islands/admin/games/GameCreateForm.tsx": $admin_games_GameCreateForm,
