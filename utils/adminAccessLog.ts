@@ -1,27 +1,29 @@
 import { adminFetch } from "./api.ts";
 
+export type LogSource = "backend" | "frontend";
+export type LogScope = "app" | "admin";
+export type LogKind = "access" | "api" | "error";
+export type LogLevel = "" | "debug" | "info" | "warn" | "error";
+
 export interface AccessLogItem {
-  id: number;
-  eventType: string;
-  eventSource: string;
-  path: string;
-  method: string;
-  statusCode: number;
-  visitorId: string;
-  machineCode: string;
-  manufacturerCode: string;
-  genreCode: string;
-  keywordCode: string;
-  searchWord: string;
-  gameCode: string;
-  affiliateCategory: string;
-  createdAt: string;
+  id: string;
+  timestamp: string;
+  scope: LogScope;
+  kind: LogKind;
+  level: LogLevel;
+  message: string;
+  method?: string;
+  path?: string;
+  statusCode?: number;
+  source: LogSource;
+  fields?: Record<string, unknown>;
 }
 
 export interface PaginatedAccessLogResponse {
   data: AccessLogItem[];
   totalCount: number;
   totalPages: number;
+  fileName?: string;
 }
 
 export interface TopItem {
@@ -54,23 +56,50 @@ export async function fetchAccessDashboard(): Promise<AccessDashboard> {
   return await adminFetch<AccessDashboard>("/admin/access-logs/dashboard");
 }
 
+export interface FetchFileLogParams {
+  page: number;
+  limit: number;
+  query: string;
+  source: LogSource;
+  scope: LogScope;
+  kind: LogKind;
+  level: LogLevel;
+  date: string;
+}
+
 export async function fetchAccessLogs(
-  page: number,
-  limit: number,
-  query: string,
-  eventType: string,
-  fromDate: string,
-  toDate: string,
+  input: FetchFileLogParams,
 ): Promise<PaginatedAccessLogResponse> {
-  const params = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-    q: query,
-    eventType,
-    fromDate,
-    toDate,
+  const queryParams = new URLSearchParams({
+    page: String(input.page),
+    limit: String(input.limit),
+    q: input.query,
+    scope: input.scope,
+    kind: input.kind,
+    date: input.date,
   });
-  return await adminFetch<PaginatedAccessLogResponse>(
-    `/admin/access-logs?${params.toString()}`,
+
+  if (input.kind === "error" && input.level) {
+    queryParams.set("level", input.level);
+  }
+
+  if (input.source === "backend") {
+    return await adminFetch<PaginatedAccessLogResponse>(
+      `/admin/log-files?${queryParams.toString()}`,
+    );
+  }
+
+  const response = await fetch(
+    `/admin/api/log-files?${queryParams.toString()}`,
+    {
+      credentials: "same-origin",
+    },
   );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "フロントログの取得に失敗しました。");
+  }
+
+  return await response.json() as PaginatedAccessLogResponse;
 }

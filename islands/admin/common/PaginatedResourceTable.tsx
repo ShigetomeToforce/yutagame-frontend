@@ -27,6 +27,7 @@ interface PaginatedResourceTableProps<T> {
   initialLimit?: number;
   initialPage?: number;
   initialQuery?: string;
+  defaultShowAdvancedSearch?: boolean;
   rightActions?: ComponentChildren;
   searchExtras?: ComponentChildren;
   onStateChange?: (
@@ -57,6 +58,7 @@ export default function PaginatedResourceTable<T>({
   initialLimit = 10,
   initialPage = 1,
   initialQuery = "",
+  defaultShowAdvancedSearch = false,
   rightActions,
   searchExtras,
   onStateChange,
@@ -76,7 +78,7 @@ export default function PaginatedResourceTable<T>({
   const totalCount = useSignal(0);
   const totalPages = useSignal(0);
   const pageInput = useSignal(String(normalizedInitialPage));
-  const showAdvancedSearch = useSignal(false);
+  const showAdvancedSearch = useSignal(defaultShowAdvancedSearch);
 
   const loadPage = async (
     nextPage: number,

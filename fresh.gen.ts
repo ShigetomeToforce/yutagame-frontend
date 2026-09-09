@@ -18,6 +18,7 @@ import * as $admin_admins_index from "./routes/admin/admins/index.tsx";
 import * as $admin_announcements_id_ from "./routes/admin/announcements/[id].tsx";
 import * as $admin_announcements_create from "./routes/admin/announcements/create.tsx";
 import * as $admin_announcements_index from "./routes/admin/announcements/index.tsx";
+import * as $admin_api_log_files from "./routes/admin/api/log-files.ts";
 import * as $admin_contacts_id_ from "./routes/admin/contacts/[id].tsx";
 import * as $admin_contacts_index from "./routes/admin/contacts/index.tsx";
 import * as $admin_dashboard from "./routes/admin/dashboard.tsx";
@@ -112,6 +113,7 @@ const manifest = {
     "./routes/admin/announcements/[id].tsx": $admin_announcements_id_,
     "./routes/admin/announcements/create.tsx": $admin_announcements_create,
     "./routes/admin/announcements/index.tsx": $admin_announcements_index,
+    "./routes/admin/api/log-files.ts": $admin_api_log_files,
     "./routes/admin/contacts/[id].tsx": $admin_contacts_id_,
     "./routes/admin/contacts/index.tsx": $admin_contacts_index,
     "./routes/admin/dashboard.tsx": $admin_dashboard,
