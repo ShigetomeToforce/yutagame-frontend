@@ -1,6 +1,7 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { buildImageUrl } from "../utils/image.ts";
+import GameFavoriteButton from "../islands/app/GameFavoriteButton.tsx";
 import PublicHeader from "./_public_header.tsx";
 import BackendUnavailablePage from "./_backend_unavailable_page.tsx";
 import {
@@ -62,6 +63,7 @@ export const handler: Handlers<PageData> = {
               recentlyReleased: [],
               recentlyUpdated: [],
               randomPicks: [],
+              favoriteRanking: [],
             },
             announcements: [],
             backendUnavailable: true,
@@ -138,6 +140,21 @@ function formatAffiliateLabel(category: string): string {
   return map[category] || category;
 }
 
+function buildOutboundHref(
+  to: string,
+  gameCode: string,
+  category: string,
+  source: string,
+): string {
+  const query = new URLSearchParams({
+    to,
+    gameCode,
+    category,
+    source,
+  });
+  return `/app/out?${query.toString()}`;
+}
+
 function buildSpotlightGames(top: TopContents): GameItem[] {
   return uniqueGames([top.releaseToday]);
 }
@@ -170,6 +187,7 @@ function SpotlightDetailCard(
     .map((item) => ({
       label: formatAffiliateLabel(item.category),
       url: item.url.trim(),
+      category: item.category,
     }));
   const hasActionButtons = Boolean(game.officialSiteUrl) ||
     purchaseLinks.length > 0;
@@ -348,7 +366,12 @@ function SpotlightDetailCard(
                 >
                   {game.officialSiteUrl && (
                     <a
-                      href={game.officialSiteUrl}
+                      href={buildOutboundHref(
+                        game.officialSiteUrl,
+                        game.code,
+                        "OFFICIAL",
+                        "top_spotlight",
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       class={compact
@@ -361,7 +384,12 @@ function SpotlightDetailCard(
                   )}
                   {purchaseLinks.map((item) => (
                     <a
-                      href={item.url}
+                      href={buildOutboundHref(
+                        item.url,
+                        game.code,
+                        item.category,
+                        "top_spotlight",
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       class={compact
@@ -396,11 +424,16 @@ function SectionHeader(
         <h2 class="section-title">{title}</h2>
         <p class="section-eyebrow mt-2">{subtitle}</p>
       </div>
+      {href && showViewAll && (
+        <a href={href} class="section-link">
+          View All
+        </a>
+      )}
     </div>
   );
 }
 
-function SpotlightCard({ game }: { game: GameItem }) {
+function _SpotlightCard({ game }: { game: GameItem }) {
   const youtubeEmbed = toYouTubeEmbed(game.youtubeUrl);
   const catchCopy = game.catchCopy?.trim() || "";
   const subCatch = game.subCatch?.trim() || "";
@@ -409,6 +442,7 @@ function SpotlightCard({ game }: { game: GameItem }) {
     .map((item) => ({
       label: formatAffiliateLabel(item.category),
       url: item.url.trim(),
+      category: item.category,
     }));
   const hasActionButtons = Boolean(game.officialSiteUrl) ||
     purchaseLinks.length > 0;
@@ -516,7 +550,12 @@ function SpotlightCard({ game }: { game: GameItem }) {
                 <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {game.officialSiteUrl && (
                     <a
-                      href={game.officialSiteUrl}
+                      href={buildOutboundHref(
+                        game.officialSiteUrl,
+                        game.code,
+                        "OFFICIAL",
+                        "top_spotlight_legacy",
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30 hover:shadow-[0_12px_30px_rgba(34,211,238,0.18)]"
@@ -527,7 +566,12 @@ function SpotlightCard({ game }: { game: GameItem }) {
                   )}
                   {purchaseLinks.map((item) => (
                     <a
-                      href={item.url}
+                      href={buildOutboundHref(
+                        item.url,
+                        game.code,
+                        item.category,
+                        "top_spotlight_legacy",
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70 hover:shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
@@ -546,7 +590,7 @@ function SpotlightCard({ game }: { game: GameItem }) {
   );
 }
 
-function SmallPickCard({ game, order }: { game: GameItem; order: number }) {
+function _SmallPickCard({ game, order }: { game: GameItem; order: number }) {
   return (
     <a
       href={`/app/games/${game.code}`}
@@ -613,7 +657,7 @@ function SpotlightSection({ games }: { games: GameItem[] }) {
             <SpotlightDetailCard
               game={game}
               rankLabel={`PICK ${index + 2}`}
-              compact={true}
+              compact
             />
           ))}
         </div>
@@ -623,23 +667,6 @@ function SpotlightSection({ games }: { games: GameItem[] }) {
 }
 
 function TopGameCard({ game }: { game: GameItem }) {
-  const blocked = new Set(
-    [game.manufacturer?.name, game.machine?.name, game.genre?.name]
-      .map((v) => (v || "").trim())
-      .filter((v) => v.length > 0),
-  );
-  const seen = new Set<string>();
-  const keywordChips = (game.keywords || [])
-    .map((k) => ({ code: (k.code || "").trim(), name: (k.name || "").trim() }))
-    .filter((k) => k.code.length > 0 && k.name.length > 0)
-    .filter((k) => !blocked.has(k.name))
-    .filter((k) => {
-      if (seen.has(k.name)) return false;
-      seen.add(k.name);
-      return true;
-    })
-    .slice(0, 4);
-
   const filterHref = (
     key: "manufacturerCode" | "machineCode" | "genreCode" | "keywordCode",
     value?: string,
@@ -651,6 +678,14 @@ function TopGameCard({ game }: { game: GameItem }) {
 
   return (
     <article class="soft-rise group relative block overflow-hidden rounded-2xl border border-sky-200 bg-white">
+      <div class="border-b border-sky-100 bg-sky-50/45 px-3 py-3">
+        <a href={detailHref} class="block">
+          <p class="truncate text-sm font-extrabold text-slate-900 group-hover:text-sky-700">
+            {game.name}
+          </p>
+        </a>
+      </div>
+
       <div class="relative">
         <a href={detailHref} class="block">
           <img
@@ -660,52 +695,67 @@ function TopGameCard({ game }: { game: GameItem }) {
           />
         </a>
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <div class="absolute right-3 top-3 z-10">
+          <GameFavoriteButton code={game.code} variant="card" />
+        </div>
       </div>
 
       <div class="space-y-3 p-3">
-        <a href={detailHref} class="block space-y-2">
-          <p class="line-clamp-2 text-sm font-extrabold text-slate-900 group-hover:text-sky-700">
-            {game.name}
-          </p>
-          {game.catchCopy && (
-            <p class="line-clamp-2 text-xs text-slate-600">{game.catchCopy}</p>
-          )}
-        </a>
+        <p class="h-6 truncate text-xs leading-[1.1rem] text-slate-600">
+          {game.catchCopy || ""}
+        </p>
 
-        <div class="space-y-2 text-[11px] text-slate-600">
-          <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <a
-              href={filterHref("manufacturerCode", game.manufacturer?.code)}
-              class="inline-flex max-w-full truncate rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 hover:bg-sky-200"
-            >
-              {game.manufacturer?.name || "メーカー未設定"}
-            </a>
-            <a
-              href={filterHref("machineCode", game.machine?.code)}
-              class="inline-flex max-w-full truncate rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 hover:bg-amber-200"
-            >
-              {game.machine?.name || "ハード未設定"}
-            </a>
-            <a
-              href={filterHref("genreCode", game.genre?.code)}
-              class="inline-flex max-w-full truncate rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-200"
-            >
-              {game.genre?.name || "ジャンル未設定"}
-            </a>
-          </div>
-          <p>{formatReleaseDate(game.releaseDate)} リリース</p>
-        </div>
+        <p class="text-[10px] font-black tracking-[0.14em] text-slate-500">
+          GAME INFO
+        </p>
 
-        <div>
-          <div class="flex flex-wrap gap-1.5 text-[11px]">
-            {keywordChips.length === 0 ? null : keywordChips.map((k) => (
+        <div class="space-y-1.5 text-[12px] text-slate-700">
+          <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+            <span>メーカー</span>
+            <strong class="max-w-[62%] truncate text-right text-slate-800">
               <a
-                href={filterHref("keywordCode", k.code)}
-                class="rounded-full border border-sky-200 bg-white px-2 py-0.5 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+                href={filterHref("manufacturerCode", game.manufacturer?.code)}
+                class="block truncate hover:text-sky-700 hover:underline"
               >
-                {k.name}
+                {game.manufacturer?.name || "-"}
               </a>
-            ))}
+            </strong>
+          </p>
+          <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+            <span>機種</span>
+            <strong class="max-w-[62%] truncate text-right text-slate-800">
+              <a
+                href={filterHref("machineCode", game.machine?.code)}
+                class="block truncate hover:text-sky-700 hover:underline"
+              >
+                {game.machine?.name || "-"}
+              </a>
+            </strong>
+          </p>
+          <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+            <span>ジャンル</span>
+            <strong class="max-w-[62%] truncate text-right text-slate-800">
+              <a
+                href={filterHref("genreCode", game.genre?.code)}
+                class="block truncate hover:text-sky-700 hover:underline"
+              >
+                {game.genre?.name || "-"}
+              </a>
+            </strong>
+          </p>
+          <div class="grid gap-1.5 sm:grid-cols-2">
+            <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+              <span>価格</span>
+              <strong class="max-w-[62%] truncate text-right text-slate-800">
+                {formatPrice(game.listPrice)}
+              </strong>
+            </p>
+            <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+              <span>発売日</span>
+              <strong class="max-w-[72%] truncate text-right text-slate-800">
+                {formatReleaseDate(game.releaseDate)}
+              </strong>
+            </p>
           </div>
         </div>
       </div>
@@ -734,7 +784,7 @@ function TopGameStrip(
         ? <p class="mt-4 text-sm text-cyan-100/80">該当ゲームは準備中です。</p>
         : (
           <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {games.map((g) => <TopGameCard game={g} />)}
+            {games.map((g) => <TopGameCard key={g.code} game={g} />)}
           </div>
         )}
     </section>
@@ -881,7 +931,6 @@ export default function Home({ data }: PageProps<PageData>) {
   }
 
   const spotlightGames = buildSpotlightGames(data.top);
-
   return (
     <div class="public-bg flex h-full flex-col">
       <Head>

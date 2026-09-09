@@ -25,6 +25,10 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
   let pageTitle = "管理トップ";
   if (cleanPath === "/admin") {
     pageTitle = "🌲 TOP";
+  } else if (cleanPath.startsWith("/admin/dashboard")) {
+    pageTitle = "📊 アクセスダッシュボード";
+  } else if (cleanPath.startsWith("/admin/logs")) {
+    pageTitle = "🧾 ログ管理";
   } else if (cleanPath.startsWith("/admin/games")) {
     pageTitle = "🎮 ゲーム管理";
   } else if (cleanPath.startsWith("/admin/machines")) {
@@ -52,6 +56,16 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "🌲 TOP",
       href: "/admin",
       active: cleanPath === "/admin",
+    },
+    {
+      label: "📊 ダッシュボード",
+      href: "/admin/dashboard",
+      active: cleanPath.startsWith("/admin/dashboard"),
+    },
+    {
+      label: "🧾 ログ管理",
+      href: "/admin/logs",
+      active: cleanPath.startsWith("/admin/logs"),
     },
     {
       label: "🎮 ゲーム管理",

@@ -1,6 +1,7 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
+import GameFavoriteButton from "../../../islands/app/GameFavoriteButton.tsx";
 import { appFetch, AppHttpError, GameItem } from "../../../utils/appApi.ts";
 import { buildImageUrl } from "../../../utils/image.ts";
 
@@ -40,6 +41,20 @@ function formatAffiliateLabel(category: string): string {
     STEAM: "Steam",
   };
   return map[category] || category;
+}
+
+function buildOutboundHref(
+  to: string,
+  gameCode: string,
+  category: string,
+): string {
+  const query = new URLSearchParams({
+    to,
+    gameCode,
+    category,
+    source: "game_detail",
+  });
+  return `/app/out?${query.toString()}`;
 }
 
 export const handler: Handlers<PageData> = {
@@ -90,6 +105,7 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
     .map((item) => ({
       label: formatAffiliateLabel(item.category),
       url: item.url.trim(),
+      category: item.category,
     }));
 
   return (
@@ -158,6 +174,9 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
                 alt={game.name}
                 class="aspect-[3/4] w-full rounded-2xl border border-cyan-300/25 object-contain object-center bg-black/20"
               />
+              <div class="mt-3">
+                <GameFavoriteButton code={game.code} />
+              </div>
             </div>
           </div>
         </div>
@@ -202,7 +221,11 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
               <div class="flex flex-wrap gap-2">
                 {game.officialSiteUrl && (
                   <a
-                    href={game.officialSiteUrl}
+                    href={buildOutboundHref(
+                      game.officialSiteUrl,
+                      game.code,
+                      "OFFICIAL",
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="group relative inline-flex min-h-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30"
@@ -221,7 +244,11 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
                   <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {purchaseLinks.map((item) => (
                       <a
-                        href={item.url}
+                        href={buildOutboundHref(
+                          item.url,
+                          game.code,
+                          item.category,
+                        )}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="group relative inline-flex min-h-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70"

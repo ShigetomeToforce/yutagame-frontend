@@ -14,6 +14,40 @@ export default function AdminTopPage() {
       {/* 📦 機能カードの一覧（グリッド配置） */}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <a
+          href="/admin/dashboard"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">
+              📊 アクセスダッシュボード
+            </div>
+            <span class="text-gray-300 group-hover:text-blue-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            デイリー・マンスリーKPIと検索条件の上位傾向を確認します。
+          </p>
+        </a>
+
+        <a
+          href="/admin/logs"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-slate-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-slate-600 transition-colors">
+              🧾 ログ管理
+            </div>
+            <span class="text-gray-300 group-hover:text-slate-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            日付やイベント種別でフィルタして、アクセスログの詳細を追跡します。
+          </p>
+        </a>
+
+        <a
           href="/admin/games"
           class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-violet-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
         >

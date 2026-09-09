@@ -20,6 +20,7 @@ import * as $admin_announcements_create from "./routes/admin/announcements/creat
 import * as $admin_announcements_index from "./routes/admin/announcements/index.tsx";
 import * as $admin_contacts_id_ from "./routes/admin/contacts/[id].tsx";
 import * as $admin_contacts_index from "./routes/admin/contacts/index.tsx";
+import * as $admin_dashboard from "./routes/admin/dashboard.tsx";
 import * as $admin_games_code_ from "./routes/admin/games/[code].tsx";
 import * as $admin_games_create from "./routes/admin/games/create.tsx";
 import * as $admin_games_index from "./routes/admin/games/index.tsx";
@@ -32,6 +33,7 @@ import * as $admin_keywords_id_edit from "./routes/admin/keywords/[id]/edit.tsx"
 import * as $admin_keywords_create from "./routes/admin/keywords/create.tsx";
 import * as $admin_keywords_index from "./routes/admin/keywords/index.tsx";
 import * as $admin_login from "./routes/admin/login.tsx";
+import * as $admin_logs from "./routes/admin/logs.tsx";
 import * as $admin_machines_code_ from "./routes/admin/machines/[code].tsx";
 import * as $admin_machines_create from "./routes/admin/machines/create.tsx";
 import * as $admin_machines_index from "./routes/admin/machines/index.tsx";
@@ -47,6 +49,7 @@ import * as $announcements_id_ from "./routes/announcements/[id].tsx";
 import * as $announcements_index from "./routes/announcements/index.tsx";
 import * as $app_games_code_ from "./routes/app/games/[code].tsx";
 import * as $app_games_index from "./routes/app/games/index.tsx";
+import * as $app_out from "./routes/app/out.ts";
 import * as $commercial from "./routes/commercial.tsx";
 import * as $contact from "./routes/contact.tsx";
 import * as $faq from "./routes/faq.tsx";
@@ -61,6 +64,8 @@ import * as $AdminHeader from "./islands/AdminHeader.tsx";
 import * as $admin_AdminHeader from "./islands/admin/AdminHeader.tsx";
 import * as $admin_admins_AdminForm from "./islands/admin/admins/AdminForm.tsx";
 import * as $admin_admins_AdminList from "./islands/admin/admins/AdminList.tsx";
+import * as $admin_analytics_AccessDashboard from "./islands/admin/analytics/AccessDashboard.tsx";
+import * as $admin_analytics_AccessLogList from "./islands/admin/analytics/AccessLogList.tsx";
 import * as $admin_announcements_AnnouncementForm from "./islands/admin/announcements/AnnouncementForm.tsx";
 import * as $admin_announcements_AnnouncementList from "./islands/admin/announcements/AnnouncementList.tsx";
 import * as $admin_auth_LoginForm from "./islands/admin/auth/LoginForm.tsx";
@@ -83,6 +88,7 @@ import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufact
 import * as $admin_users_UserForm from "./islands/admin/users/UserForm.tsx";
 import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $app_ContactForm from "./islands/app/ContactForm.tsx";
+import * as $app_GameFavoriteButton from "./islands/app/GameFavoriteButton.tsx";
 import * as $app_GameSearchExplorer from "./islands/app/GameSearchExplorer.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
@@ -108,6 +114,7 @@ const manifest = {
     "./routes/admin/announcements/index.tsx": $admin_announcements_index,
     "./routes/admin/contacts/[id].tsx": $admin_contacts_id_,
     "./routes/admin/contacts/index.tsx": $admin_contacts_index,
+    "./routes/admin/dashboard.tsx": $admin_dashboard,
     "./routes/admin/games/[code].tsx": $admin_games_code_,
     "./routes/admin/games/create.tsx": $admin_games_create,
     "./routes/admin/games/index.tsx": $admin_games_index,
@@ -120,6 +127,7 @@ const manifest = {
     "./routes/admin/keywords/create.tsx": $admin_keywords_create,
     "./routes/admin/keywords/index.tsx": $admin_keywords_index,
     "./routes/admin/login.tsx": $admin_login,
+    "./routes/admin/logs.tsx": $admin_logs,
     "./routes/admin/machines/[code].tsx": $admin_machines_code_,
     "./routes/admin/machines/create.tsx": $admin_machines_create,
     "./routes/admin/machines/index.tsx": $admin_machines_index,
@@ -135,6 +143,7 @@ const manifest = {
     "./routes/announcements/index.tsx": $announcements_index,
     "./routes/app/games/[code].tsx": $app_games_code_,
     "./routes/app/games/index.tsx": $app_games_index,
+    "./routes/app/out.ts": $app_out,
     "./routes/commercial.tsx": $commercial,
     "./routes/contact.tsx": $contact,
     "./routes/faq.tsx": $faq,
@@ -151,6 +160,10 @@ const manifest = {
     "./islands/admin/AdminHeader.tsx": $admin_AdminHeader,
     "./islands/admin/admins/AdminForm.tsx": $admin_admins_AdminForm,
     "./islands/admin/admins/AdminList.tsx": $admin_admins_AdminList,
+    "./islands/admin/analytics/AccessDashboard.tsx":
+      $admin_analytics_AccessDashboard,
+    "./islands/admin/analytics/AccessLogList.tsx":
+      $admin_analytics_AccessLogList,
     "./islands/admin/announcements/AnnouncementForm.tsx":
       $admin_announcements_AnnouncementForm,
     "./islands/admin/announcements/AnnouncementList.tsx":
@@ -181,6 +194,7 @@ const manifest = {
     "./islands/admin/users/UserForm.tsx": $admin_users_UserForm,
     "./islands/admin/users/UserList.tsx": $admin_users_UserList,
     "./islands/app/ContactForm.tsx": $app_ContactForm,
+    "./islands/app/GameFavoriteButton.tsx": $app_GameFavoriteButton,
     "./islands/app/GameSearchExplorer.tsx": $app_GameSearchExplorer,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,

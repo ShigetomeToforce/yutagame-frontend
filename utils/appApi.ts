@@ -44,6 +44,13 @@ export interface GameAffiliate {
   url: string;
 }
 
+export interface GameFavoriteStatus {
+  gameId: number;
+  count: number;
+  alreadyVoted: boolean;
+  favoriteDate: string;
+}
+
 export interface GameItem {
   id: number;
   name: string;
@@ -78,6 +85,12 @@ export interface TopContents {
   recentlyReleased: GameItem[];
   recentlyUpdated: GameItem[];
   randomPicks: GameItem[];
+  favoriteRanking: FavoriteRankingItem[];
+}
+
+export interface FavoriteRankingItem {
+  game: GameItem;
+  count: number;
 }
 
 export interface AnnouncementItem {
@@ -253,4 +266,42 @@ export async function submitContactInquiry(
 
 export async function fetchSitemapData(): Promise<SitemapData> {
   return await appFetch<SitemapData>("/app/sitemap");
+}
+
+function buildAppUrl(endpoint: string): string {
+  const formattedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  return `${APP_BASE_URL}${formattedEndpoint}`;
+}
+
+export async function fetchGameFavoriteStatus(
+  code: string,
+  visitorId?: string,
+): Promise<GameFavoriteStatus> {
+  const url = new URL(`http://local.invalid/app/games/${code}/favorite`);
+  if (visitorId) {
+    url.searchParams.set("visitorId", visitorId);
+  }
+  return await appFetch<GameFavoriteStatus>(`${url.pathname}${url.search}`);
+}
+
+export async function pushGameFavorite(
+  code: string,
+  visitorId: string,
+): Promise<GameFavoriteStatus> {
+  const response = await fetch(buildAppUrl(`/app/games/${code}/favorite`), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ visitorId }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "推しの送信に失敗しました。");
+  }
+
+  return await response.json() as GameFavoriteStatus;
 }
