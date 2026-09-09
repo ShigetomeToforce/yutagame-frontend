@@ -28,7 +28,7 @@ export default function PublicHeader() {
               id="global-game-search"
               type="text"
               name="q"
-              placeholder="ゲーム名・カナで検索"
+              placeholder="ゲーム名で検索"
               class="w-full rounded-xl border border-cyan-200/40 bg-slate-950/70 px-3 py-2 text-sm text-cyan-50 placeholder:text-cyan-200/65"
             />
             <button
@@ -112,7 +112,7 @@ export default function PublicHeader() {
             id="global-game-search-mobile"
             type="text"
             name="q"
-            placeholder="ゲーム名・カナで検索"
+            placeholder="ゲーム名で検索"
             class="w-full rounded-xl border border-cyan-200/40 bg-slate-950/70 px-3 py-2 text-sm text-cyan-50 placeholder:text-cyan-200/65"
           />
           <button
@@ -122,9 +122,6 @@ export default function PublicHeader() {
             検索
           </button>
         </form>
-        <p class="mt-1 text-[11px] font-semibold text-cyan-100/80">
-          ゲーム名やカナを入力すると、すぐにゲーム一覧を検索できます。
-        </p>
       </div>
     </header>
   );
