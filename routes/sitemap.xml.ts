@@ -1,5 +1,5 @@
 import { type Handlers } from "$fresh/server.ts";
-import { fetchSitemapData } from "../utils/appApi.ts";
+import { AppHttpError, fetchSitemapData } from "../utils/appApi.ts";
 
 const STATIC_PAGES = [
   "/",
@@ -17,7 +17,22 @@ const STATIC_PAGES = [
 export const handler: Handlers = {
   async GET(req) {
     const origin = new URL(req.url).origin;
-    const data = await fetchSitemapData();
+    let data;
+    try {
+      data = await fetchSitemapData();
+    } catch (error) {
+      if (error instanceof AppHttpError && error.status === 503) {
+        return new Response("service unavailable", {
+          status: 503,
+          headers: {
+            "content-type": "text/plain; charset=utf-8",
+            "retry-after": "60",
+          },
+        });
+      }
+      throw error;
+    }
+
     const urls = [
       ...STATIC_PAGES.map((path) => `${origin}${path}`),
       ...data.gameCodes.map((code) =>

@@ -1,18 +1,44 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import {
   type AnnouncementItem,
+  AppHttpError,
   fetchAnnouncementById,
 } from "../../utils/appApi.ts";
+import BackendUnavailablePage from "../_backend_unavailable_page.tsx";
 import SitePage from "../_site_page.tsx";
 
 interface PageData {
-  item: AnnouncementItem;
+  item?: AnnouncementItem;
+  backendUnavailable?: boolean;
+  retryHref?: string;
 }
 
 export const handler: Handlers<PageData> = {
-  async GET(_req, ctx) {
-    const item = await fetchAnnouncementById(Number(ctx.params.id));
-    return ctx.render({ item });
+  async GET(req, ctx) {
+    const id = Number(ctx.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return ctx.renderNotFound();
+    }
+
+    try {
+      const item = await fetchAnnouncementById(id);
+      return ctx.render({ item });
+    } catch (error) {
+      if (error instanceof AppHttpError && error.status === 404) {
+        return ctx.renderNotFound();
+      }
+      if (error instanceof AppHttpError && error.status === 503) {
+        const requestUrl = new URL(req.url);
+        return ctx.render(
+          {
+            backendUnavailable: true,
+            retryHref: `${requestUrl.pathname}${requestUrl.search}`,
+          },
+          { status: 503 },
+        );
+      }
+      throw error;
+    }
   },
 };
 
@@ -22,6 +48,16 @@ function formatDate(value?: string) {
 }
 
 export default function AnnouncementDetailPage({ data }: PageProps<PageData>) {
+  if (data.backendUnavailable) {
+    return (
+      <BackendUnavailablePage retryHref={data.retryHref || "/announcements"} />
+    );
+  }
+
+  if (!data.item) {
+    return null;
+  }
+
   const { item } = data;
   return (
     <SitePage title={item.title} description={item.excerpt}>

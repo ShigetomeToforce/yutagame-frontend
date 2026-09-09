@@ -2,6 +2,16 @@ import { APP_BASE_URL } from "./api.ts";
 
 const isServer = typeof Deno !== "undefined";
 
+export class AppHttpError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "AppHttpError";
+    this.status = status;
+  }
+}
+
 export interface CatalogItem {
   code: string;
   name: string;
@@ -161,7 +171,7 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
         } catch {
           // ignore json parse error and use fallback message.
         }
-        throw new Error(message);
+        throw new AppHttpError(response.status, message);
       }
 
       return await response.json() as T;
@@ -178,7 +188,8 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
     ? lastNetworkError.message
     : "network error";
 
-  throw new Error(
+  throw new AppHttpError(
+    503,
     `バックエンドAPIへ接続できませんでした。候補: ${candidatesText}. 理由: ${reason}`,
   );
 }

@@ -1,11 +1,14 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
-import { appFetch, GameItem } from "../../../utils/appApi.ts";
+import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
+import { appFetch, AppHttpError, GameItem } from "../../../utils/appApi.ts";
 import { buildImageUrl } from "../../../utils/image.ts";
 
 interface PageData {
-  game: GameItem;
-  returnTo: string;
+  game?: GameItem;
+  returnTo?: string;
+  backendUnavailable?: boolean;
+  retryHref?: string;
 }
 
 function toYouTubeEmbed(url: string): string | null {
@@ -47,13 +50,40 @@ export const handler: Handlers<PageData> = {
       ? returnToParam
       : "/app/games";
 
-    const game = await appFetch<GameItem>(`/app/games/${ctx.params.code}`);
-    return ctx.render({ game, returnTo });
+    try {
+      const game = await appFetch<GameItem>(`/app/games/${ctx.params.code}`);
+      return ctx.render({ game, returnTo });
+    } catch (error) {
+      if (error instanceof AppHttpError && error.status === 404) {
+        return ctx.renderNotFound();
+      }
+      if (error instanceof AppHttpError && error.status === 503) {
+        return ctx.render(
+          {
+            backendUnavailable: true,
+            retryHref: `${url.pathname}${url.search}`,
+          },
+          { status: 503 },
+        );
+      }
+      throw error;
+    }
   },
 };
 
 export default function GameDetailPage({ data }: PageProps<PageData>) {
-  const { game, returnTo } = data;
+  if (data.backendUnavailable) {
+    return (
+      <BackendUnavailablePage retryHref={data.retryHref || "/app/games"} />
+    );
+  }
+
+  if (!data.game) {
+    return null;
+  }
+
+  const { game } = data;
+  const returnTo = data.returnTo || "/app/games";
   const youtubeEmbed = toYouTubeEmbed(game.youtubeUrl || "");
   const purchaseLinks = (game.affiliates || [])
     .filter((item) => item.url?.trim())

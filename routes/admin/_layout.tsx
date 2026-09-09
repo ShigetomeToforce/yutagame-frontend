@@ -43,6 +43,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "👤 Adminユーザー管理";
   } else if (cleanPath.startsWith("/admin/users")) {
     pageTitle = "👥 ユーザー管理";
+  } else if (cleanPath.startsWith("/admin/maintenance")) {
+    pageTitle = "🛠️ メンテナンス管理";
   }
 
   const menuItems = [
@@ -85,6 +87,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "✉️ 問い合わせ管理",
       href: "/admin/contacts",
       active: cleanPath.startsWith("/admin/contacts"),
+    },
+    {
+      label: "🛠️ メンテナンス管理",
+      href: "/admin/maintenance",
+      active: cleanPath.startsWith("/admin/maintenance"),
     },
   ];
 

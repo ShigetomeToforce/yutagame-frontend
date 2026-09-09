@@ -3,7 +3,10 @@
 // This file is automatically updated during development when running `dev.ts`.
 
 import * as $_404 from "./routes/_404.tsx";
+import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_backend_unavailable_page from "./routes/_backend_unavailable_page.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
 import * as $_public_header from "./routes/_public_header.tsx";
 import * as $_site_page from "./routes/_site_page.tsx";
 import * as $about from "./routes/about.tsx";
@@ -32,6 +35,7 @@ import * as $admin_login from "./routes/admin/login.tsx";
 import * as $admin_machines_code_ from "./routes/admin/machines/[code].tsx";
 import * as $admin_machines_create from "./routes/admin/machines/create.tsx";
 import * as $admin_machines_index from "./routes/admin/machines/index.tsx";
+import * as $admin_maintenance from "./routes/admin/maintenance.tsx";
 import * as $admin_manufacturers_code_ from "./routes/admin/manufacturers/[code].tsx";
 import * as $admin_manufacturers_layout from "./routes/admin/manufacturers/_layout.tsx";
 import * as $admin_manufacturers_create from "./routes/admin/manufacturers/create.tsx";
@@ -47,6 +51,7 @@ import * as $commercial from "./routes/commercial.tsx";
 import * as $contact from "./routes/contact.tsx";
 import * as $faq from "./routes/faq.tsx";
 import * as $index from "./routes/index.tsx";
+import * as $maintenance from "./routes/maintenance.tsx";
 import * as $privacy from "./routes/privacy.tsx";
 import * as $robots_txt from "./routes/robots.txt.ts";
 import * as $sitemap from "./routes/sitemap.tsx";
@@ -86,7 +91,10 @@ import type { Manifest } from "$fresh/server.ts";
 const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
+    "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
+    "./routes/_backend_unavailable_page.tsx": $_backend_unavailable_page,
+    "./routes/_middleware.ts": $_middleware,
     "./routes/_public_header.tsx": $_public_header,
     "./routes/_site_page.tsx": $_site_page,
     "./routes/about.tsx": $about,
@@ -115,6 +123,7 @@ const manifest = {
     "./routes/admin/machines/[code].tsx": $admin_machines_code_,
     "./routes/admin/machines/create.tsx": $admin_machines_create,
     "./routes/admin/machines/index.tsx": $admin_machines_index,
+    "./routes/admin/maintenance.tsx": $admin_maintenance,
     "./routes/admin/manufacturers/[code].tsx": $admin_manufacturers_code_,
     "./routes/admin/manufacturers/_layout.tsx": $admin_manufacturers_layout,
     "./routes/admin/manufacturers/create.tsx": $admin_manufacturers_create,
@@ -130,6 +139,7 @@ const manifest = {
     "./routes/contact.tsx": $contact,
     "./routes/faq.tsx": $faq,
     "./routes/index.tsx": $index,
+    "./routes/maintenance.tsx": $maintenance,
     "./routes/privacy.tsx": $privacy,
     "./routes/robots.txt.ts": $robots_txt,
     "./routes/sitemap.tsx": $sitemap,

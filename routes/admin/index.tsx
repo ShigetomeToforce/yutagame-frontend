@@ -132,6 +132,23 @@ export default function AdminTopPage() {
           </p>
         </a>
 
+        <a
+          href="/admin/maintenance"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-amber-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-amber-600 transition-colors">
+              🛠️ メンテナンス管理
+            </div>
+            <span class="text-gray-300 group-hover:text-amber-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            公開ページを一時停止するメンテナンスモードのON/OFFを切り替えます。
+          </p>
+        </a>
+
         <div class="col-span-full border-t border-gray-200 my-2" />
 
         <a

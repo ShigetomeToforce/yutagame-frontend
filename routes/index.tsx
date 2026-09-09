@@ -2,9 +2,11 @@ import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { buildImageUrl } from "../utils/image.ts";
 import PublicHeader from "./_public_header.tsx";
+import BackendUnavailablePage from "./_backend_unavailable_page.tsx";
 import {
   AnnouncementItem,
   appFetch,
+  AppHttpError,
   CatalogItem,
   fetchAnnouncements,
   GameItem,
@@ -19,30 +21,57 @@ interface PageData {
   keywords: KeywordItem[];
   top: TopContents;
   announcements: AnnouncementItem[];
+  backendUnavailable?: boolean;
+  retryHref?: string;
 }
 
 export const handler: Handlers<PageData> = {
-  async GET(_req, ctx) {
-    const [machines, genres, manufacturers, keywords, top, announcements] =
-      await Promise.all([
-        appFetch<CatalogItem[]>("/app/catalog/machines"),
-        appFetch<CatalogItem[]>("/app/catalog/genres"),
-        appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-        appFetch<KeywordItem[]>("/app/keywords"),
-        appFetch<TopContents>(
-          "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
-        ),
-        fetchAnnouncements(),
-      ]);
+  async GET(req, ctx) {
+    try {
+      const [machines, genres, manufacturers, keywords, top, announcements] =
+        await Promise.all([
+          appFetch<CatalogItem[]>("/app/catalog/machines"),
+          appFetch<CatalogItem[]>("/app/catalog/genres"),
+          appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+          appFetch<KeywordItem[]>("/app/keywords"),
+          appFetch<TopContents>(
+            "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
+          ),
+          fetchAnnouncements(),
+        ]);
 
-    return ctx.render({
-      machines,
-      genres,
-      manufacturers,
-      keywords,
-      top,
-      announcements,
-    });
+      return ctx.render({
+        machines,
+        genres,
+        manufacturers,
+        keywords,
+        top,
+        announcements,
+      });
+    } catch (error) {
+      if (error instanceof AppHttpError && error.status === 503) {
+        const requestUrl = new URL(req.url);
+        return ctx.render(
+          {
+            machines: [],
+            genres: [],
+            manufacturers: [],
+            keywords: [],
+            top: {
+              releaseToday: [],
+              recentlyReleased: [],
+              recentlyUpdated: [],
+              randomPicks: [],
+            },
+            announcements: [],
+            backendUnavailable: true,
+            retryHref: `${requestUrl.pathname}${requestUrl.search}`,
+          },
+          { status: 503 },
+        );
+      }
+      throw error;
+    }
   },
 };
 
@@ -133,6 +162,9 @@ function SpotlightDetailCard(
   const catchCopy = game.catchCopy?.trim() || "";
   const subCatch = game.subCatch?.trim() || "";
   const isReleaseToday = isReleaseAnniversaryToday(game.releaseDate);
+  const keywordItems = (game.keywords || [])
+    .map((keyword) => keyword.name?.trim() || "")
+    .filter((keyword) => keyword.length > 0);
   const purchaseLinks = (game.affiliates || [])
     .filter((item) => item.url?.trim())
     .map((item) => ({
@@ -146,9 +178,9 @@ function SpotlightDetailCard(
     : (compact ? "md:min-h-[340px]" : "md:min-h-[360px]");
 
   return (
-    <article class="spotlight-card soft-rise relative overflow-hidden rounded-3xl">
+    <article class="spotlight-card soft-rise relative h-full overflow-hidden rounded-3xl">
       <div
-        class={`grid gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
+        class={`grid h-full gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
       >
         <a
           href={`/app/games/${game.code}`}
@@ -164,13 +196,6 @@ function SpotlightDetailCard(
             />
           </div>
           <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
-          <div class="absolute left-3 top-3 z-10 flex max-w-[88%] flex-col items-start gap-1">
-            {(game.keywords || []).slice(0, 2).map((keyword) => (
-              <span class="inline-flex max-w-full truncate rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-emerald-100">
-                {keyword.name}
-              </span>
-            ))}
-          </div>
         </a>
 
         <div class="relative space-y-3 overflow-hidden md:col-span-2">
@@ -253,6 +278,29 @@ function SpotlightDetailCard(
               </strong>
             </p>
           </div>
+
+          {keywordItems.length > 0 && (
+            <section
+              class={compact
+                ? "rounded-xl border border-cyan-300/25 bg-black/15 p-2"
+                : "rounded-xl border border-cyan-300/25 bg-black/15 p-3"}
+            >
+              <p
+                class={compact
+                  ? "text-[9px] font-black tracking-[0.16em] text-cyan-200"
+                  : "text-[10px] font-black tracking-[0.16em] text-cyan-200"}
+              >
+                KEYWORDS
+              </p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                {keywordItems.map((keyword) => (
+                  <span class="inline-flex max-w-full rounded-full border border-cyan-200/25 bg-cyan-300/12 px-3 py-1 text-[11px] font-semibold text-cyan-50">
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
 
           <div class="grid gap-3 md:grid-cols-2 md:items-start">
             {youtubeEmbed && (
@@ -828,6 +876,10 @@ function NewsSection({ announcements }: { announcements: AnnouncementItem[] }) {
 }
 
 export default function Home({ data }: PageProps<PageData>) {
+  if (data.backendUnavailable) {
+    return <BackendUnavailablePage retryHref={data.retryHref || "/"} />;
+  }
+
   const spotlightGames = buildSpotlightGames(data.top);
 
   return (

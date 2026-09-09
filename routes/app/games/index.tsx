@@ -1,9 +1,11 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import GameSearchExplorer from "../../../islands/app/GameSearchExplorer.tsx";
+import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
 import PublicHeader from "../../_public_header.tsx";
 import {
   appFetch,
+  AppHttpError,
   CatalogItem,
   KeywordItem,
   SearchResponse,
@@ -24,6 +26,8 @@ interface PageData {
   keywords: KeywordItem[];
   initialFilters: SearchFilters;
   initialResponse: SearchResponse;
+  backendUnavailable?: boolean;
+  retryHref?: string;
 }
 
 export const handler: Handlers<PageData> = {
@@ -47,28 +51,59 @@ export const handler: Handlers<PageData> = {
       keywordCode: initialFilters.keywordCode,
     });
 
-    const [machines, genres, manufacturers, keywords, initialResponse] =
-      await Promise
-        .all([
-          appFetch<CatalogItem[]>("/app/catalog/machines"),
-          appFetch<CatalogItem[]>("/app/catalog/genres"),
-          appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-          appFetch<KeywordItem[]>("/app/keywords"),
-          appFetch<SearchResponse>(`/app/games?${query.toString()}`),
-        ]);
+    try {
+      const [machines, genres, manufacturers, keywords, initialResponse] =
+        await Promise
+          .all([
+            appFetch<CatalogItem[]>("/app/catalog/machines"),
+            appFetch<CatalogItem[]>("/app/catalog/genres"),
+            appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+            appFetch<KeywordItem[]>("/app/keywords"),
+            appFetch<SearchResponse>(`/app/games?${query.toString()}`),
+          ]);
 
-    return ctx.render({
-      machines,
-      genres,
-      manufacturers,
-      keywords,
-      initialFilters,
-      initialResponse,
-    });
+      return ctx.render({
+        machines,
+        genres,
+        manufacturers,
+        keywords,
+        initialFilters,
+        initialResponse,
+      });
+    } catch (error) {
+      if (error instanceof AppHttpError && error.status === 503) {
+        return ctx.render(
+          {
+            machines: [],
+            genres: [],
+            manufacturers: [],
+            keywords: [],
+            initialFilters,
+            initialResponse: {
+              data: [],
+              totalCount: 0,
+              totalPages: 0,
+              page: 1,
+              limit: 20,
+            },
+            backendUnavailable: true,
+            retryHref: `${url.pathname}${url.search}`,
+          },
+          { status: 503 },
+        );
+      }
+      throw error;
+    }
   },
 };
 
 export default function SearchPage({ data }: PageProps<PageData>) {
+  if (data.backendUnavailable) {
+    return (
+      <BackendUnavailablePage retryHref={data.retryHref || "/app/games"} />
+    );
+  }
+
   return (
     <div class="public-bg flex h-full flex-col">
       <Head>
