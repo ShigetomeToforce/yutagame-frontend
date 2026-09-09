@@ -98,6 +98,40 @@ export default function AdminTopPage() {
           </p>
         </a>
 
+        <a
+          href="/admin/announcements"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-fuchsia-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-fuchsia-600 transition-colors">
+              📰 お知らせ管理
+            </div>
+            <span class="text-gray-300 group-hover:text-fuchsia-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            更新履歴や特集案内をHTML本文つきで作成・公開・管理します。
+          </p>
+        </a>
+
+        <a
+          href="/admin/contacts"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-teal-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-teal-600 transition-colors">
+              ✉️ 問い合わせ管理
+            </div>
+            <span class="text-gray-300 group-hover:text-teal-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            送信されたお問い合わせを一覧管理し、対応状況や管理メモを更新します。
+          </p>
+        </a>
+
         <div class="col-span-full border-t border-gray-200 my-2" />
 
         <a

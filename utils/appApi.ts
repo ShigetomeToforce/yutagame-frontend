@@ -27,6 +27,13 @@ export interface GameKeyword {
   code: string;
 }
 
+export interface GameAffiliate {
+  id: number;
+  gameId: number;
+  category: string;
+  url: string;
+}
+
 export interface GameItem {
   id: number;
   name: string;
@@ -34,16 +41,18 @@ export interface GameItem {
   code: string;
   imageKey?: string;
   overview: string;
+  subGenre: string;
   catchCopy: string;
   subCatch: string;
   listPrice: number;
   releaseDate: string;
   officialSiteUrl: string;
-  youTubeUrl: string;
+  youtubeUrl: string;
   manufacturer?: LinkedMaster;
   machine?: LinkedMaster;
   genre?: LinkedMaster;
   keywords: GameKeyword[];
+  affiliates?: GameAffiliate[];
 }
 
 export interface SearchResponse {
@@ -56,8 +65,37 @@ export interface SearchResponse {
 
 export interface TopContents {
   releaseToday: GameItem[];
+  recentlyReleased: GameItem[];
   recentlyUpdated: GameItem[];
   randomPicks: GameItem[];
+}
+
+export interface AnnouncementItem {
+  id: number;
+  title: string;
+  excerpt: string;
+  bodyHtml: string;
+  status: string;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactInquiryItem {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  adminNote: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SitemapData {
+  gameCodes: string[];
+  announcementIds: number[];
 }
 
 export interface SearchQuery {
@@ -168,4 +206,40 @@ export async function searchGames(
   return await appFetch<SearchResponse>(
     `/app/games${buildQueryString(params)}`,
   );
+}
+
+export async function fetchAnnouncements(): Promise<AnnouncementItem[]> {
+  return await appFetch<AnnouncementItem[]>("/app/announcements");
+}
+
+export async function fetchAnnouncementById(
+  id: number,
+): Promise<AnnouncementItem> {
+  return await appFetch<AnnouncementItem>(`/app/announcements/${id}`);
+}
+
+export async function submitContactInquiry(
+  payload: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  },
+): Promise<ContactInquiryItem> {
+  const response = await fetch(`${APP_BASE_URL}/app/contacts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "問い合わせの送信に失敗しました。");
+  }
+
+  return await response.json() as ContactInquiryItem;
+}
+
+export async function fetchSitemapData(): Promise<SitemapData> {
+  return await appFetch<SitemapData>("/app/sitemap");
 }

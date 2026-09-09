@@ -18,12 +18,20 @@ interface PaginatedResourceTableProps<T> {
   emptyMessage: string;
   emptySearchMessage: string;
   getKey: (item: T) => string | number;
+  getRowHref?: (item: T) => string;
+  rowAriaLabel?: (item: T) => string;
+  showRowChevron?: boolean;
   renderMobileRow: (item: T) => ComponentChildren;
   renderDesktopHeader: () => ComponentChildren;
   renderDesktopRow: (item: T) => ComponentChildren;
   initialLimit?: number;
+  initialPage?: number;
+  initialQuery?: string;
   rightActions?: ComponentChildren;
   searchExtras?: ComponentChildren;
+  onStateChange?: (
+    state: { page: number; limit: number; query: string },
+  ) => void;
 }
 
 const PAGE_OPTIONS = [10, 30, 50];
@@ -40,23 +48,34 @@ export default function PaginatedResourceTable<T>({
   emptyMessage,
   emptySearchMessage,
   getKey,
+  getRowHref,
+  rowAriaLabel,
+  showRowChevron = false,
   renderMobileRow,
   renderDesktopHeader,
   renderDesktopRow,
   initialLimit = 10,
+  initialPage = 1,
+  initialQuery = "",
   rightActions,
   searchExtras,
+  onStateChange,
 }: PaginatedResourceTableProps<T>) {
   const items = useSignal<T[]>([]);
   const error = useSignal("");
   const loading = useSignal(true);
-  const page = useSignal(1);
+  const normalizedInitialPage = Number.isFinite(initialPage) && initialPage > 0
+    ? Math.floor(initialPage)
+    : 1;
+  const normalizedInitialQuery = initialQuery.trim();
+
+  const page = useSignal(normalizedInitialPage);
   const limit = useSignal(initialLimit);
-  const searchInput = useSignal("");
-  const searchTerm = useSignal("");
+  const searchInput = useSignal(normalizedInitialQuery);
+  const searchTerm = useSignal(normalizedInitialQuery);
   const totalCount = useSignal(0);
   const totalPages = useSignal(0);
-  const pageInput = useSignal("1");
+  const pageInput = useSignal(String(normalizedInitialPage));
   const showAdvancedSearch = useSignal(false);
 
   const loadPage = async (
@@ -80,6 +99,11 @@ export default function PaginatedResourceTable<T>({
       page.value = safePage;
       pageInput.value = String(safePage);
       limit.value = nextLimit;
+      onStateChange?.({
+        page: safePage,
+        limit: nextLimit,
+        query,
+      });
     } catch (err) {
       if (err instanceof Error) {
         error.value = err.message;
@@ -97,7 +121,7 @@ export default function PaginatedResourceTable<T>({
   };
 
   useEffect(() => {
-    void loadPage(1, initialLimit, "");
+    void loadPage(normalizedInitialPage, initialLimit, normalizedInitialQuery);
   }, []);
 
   useEffect(() => {
@@ -153,6 +177,23 @@ export default function PaginatedResourceTable<T>({
     const nextPage = Number(pageInput.value) || 1;
     goToPage(nextPage);
   };
+
+  const ChevronIcon = () => (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      class="h-4 w-4 text-gray-400"
+      aria-hidden="true"
+    >
+      <path
+        d="M7 4l6 6-6 6"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
 
   return (
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -239,14 +280,41 @@ export default function PaginatedResourceTable<T>({
         : (
           <>
             <div class="block md:hidden divide-y divide-gray-100">
-              {items.value.map((item) => (
-                <div
-                  key={String(getKey(item))}
-                  class="p-4 space-y-3 hover:bg-gray-50 transition-colors"
-                >
-                  {renderMobileRow(item)}
-                </div>
-              ))}
+              {items.value.map((item) => {
+                const rowHref = getRowHref?.(item);
+                const content = (
+                  <>
+                    {renderMobileRow(item)}
+                    {rowHref && showRowChevron && (
+                      <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <ChevronIcon />
+                      </div>
+                    )}
+                  </>
+                );
+
+                if (rowHref) {
+                  return (
+                    <a
+                      key={String(getKey(item))}
+                      href={rowHref}
+                      aria-label={rowAriaLabel?.(item)}
+                      class="relative block p-4 pr-10 space-y-3 hover:bg-gray-50 transition-colors"
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <div
+                    key={String(getKey(item))}
+                    class="p-4 space-y-3 hover:bg-gray-50 transition-colors"
+                  >
+                    {content}
+                  </div>
+                );
+              })}
             </div>
 
             <div class="hidden md:block overflow-x-auto">
@@ -254,17 +322,44 @@ export default function PaginatedResourceTable<T>({
                 <thead>
                   <tr class="bg-gray-100 text-gray-600 text-sm font-semibold border-b border-gray-200">
                     {renderDesktopHeader()}
+                    {showRowChevron && <th class="p-4 w-10" />}
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
-                  {items.value.map((item) => (
-                    <tr
-                      key={String(getKey(item))}
-                      class="hover:bg-gray-50 transition-colors"
-                    >
-                      {renderDesktopRow(item)}
-                    </tr>
-                  ))}
+                  {items.value.map((item) => {
+                    const rowHref = getRowHref?.(item);
+
+                    return (
+                      <tr
+                        key={String(getKey(item))}
+                        class={rowHref
+                          ? "cursor-pointer hover:bg-gray-50 transition-colors"
+                          : "hover:bg-gray-50 transition-colors"}
+                        tabIndex={rowHref ? 0 : undefined}
+                        role={rowHref ? "link" : undefined}
+                        aria-label={rowHref ? rowAriaLabel?.(item) : undefined}
+                        onClick={() => {
+                          if (rowHref) {
+                            globalThis.location.href = rowHref;
+                          }
+                        }}
+                        onKeyDown={(event) => {
+                          if (!rowHref) return;
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            globalThis.location.href = rowHref;
+                          }
+                        }}
+                      >
+                        {renderDesktopRow(item)}
+                        {showRowChevron && (
+                          <td class="p-4 w-10 text-right">
+                            <ChevronIcon />
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

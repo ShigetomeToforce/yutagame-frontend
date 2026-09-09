@@ -1,8 +1,12 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 import { buildImageUrl } from "../utils/image.ts";
+import PublicHeader from "./_public_header.tsx";
 import {
+  AnnouncementItem,
   appFetch,
   CatalogItem,
+  fetchAnnouncements,
   GameItem,
   KeywordItem,
   TopContents,
@@ -14,19 +18,22 @@ interface PageData {
   manufacturers: CatalogItem[];
   keywords: KeywordItem[];
   top: TopContents;
+  announcements: AnnouncementItem[];
 }
 
 export const handler: Handlers<PageData> = {
   async GET(_req, ctx) {
-    const [machines, genres, manufacturers, keywords, top] = await Promise.all([
-      appFetch<CatalogItem[]>("/app/catalog/machines"),
-      appFetch<CatalogItem[]>("/app/catalog/genres"),
-      appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-      appFetch<KeywordItem[]>("/app/keywords"),
-      appFetch<TopContents>(
-        "/app/top?releaseLimit=10&recentLimit=8&randomLimit=8",
-      ),
-    ]);
+    const [machines, genres, manufacturers, keywords, top, announcements] =
+      await Promise.all([
+        appFetch<CatalogItem[]>("/app/catalog/machines"),
+        appFetch<CatalogItem[]>("/app/catalog/genres"),
+        appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+        appFetch<KeywordItem[]>("/app/keywords"),
+        appFetch<TopContents>(
+          "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
+        ),
+        fetchAnnouncements(),
+      ]);
 
     return ctx.render({
       machines,
@@ -34,71 +41,690 @@ export const handler: Handlers<PageData> = {
       manufacturers,
       keywords,
       top,
+      announcements,
     });
   },
 };
 
-function TopGameStrip({ title, games }: { title: string; games: GameItem[] }) {
+function uniqueGames(groups: GameItem[][]): GameItem[] {
+  const map = new Map<string, GameItem>();
+  for (const group of groups) {
+    for (const game of group) {
+      if (!map.has(game.code)) map.set(game.code, game);
+    }
+  }
+  return Array.from(map.values());
+}
+
+function formatReleaseDate(dateValue?: string): string {
+  if (!dateValue) return "-";
+  const [year, month, day] = dateValue.slice(0, 10).split("-");
+  if (!year || !month || !day) return "-";
+  return `${year}年${Number(month)}月${Number(day)}日`;
+}
+
+function isReleaseAnniversaryToday(dateValue?: string): boolean {
+  if (!dateValue) return false;
+  const releaseDate = new Date(`${dateValue.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(releaseDate.getTime())) return false;
+
+  const today = new Date();
+  return releaseDate.getMonth() === today.getMonth() &&
+    releaseDate.getDate() === today.getDate();
+}
+
+function formatPrice(value?: number): string {
+  if (!value || value <= 0) return "-";
+  return `${value.toLocaleString()}円`;
+}
+
+function formatGenre(game: GameItem): string {
+  const genreName = game.genre?.name || "-";
+  const sub = game.subGenre?.trim();
+  if (!sub) return genreName;
+  return `${genreName}（${sub}）`;
+}
+
+function toYouTubeEmbed(url?: string): string | null {
+  if (!url) return null;
+  const watchMatch = url.match(/[?&]v=([^&]+)/);
+  if (watchMatch?.[1]) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch?.[1]) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  const embedMatch = url.match(/youtube\.com\/embed\/([^?&]+)/);
+  if (embedMatch?.[1]) return `https://www.youtube.com/embed/${embedMatch[1]}`;
+  return null;
+}
+
+function formatAffiliateLabel(category: string): string {
+  const map: Record<string, string> = {
+    AMAZON: "Amazon",
+    RAKUTEN: "楽天",
+    YAHOO: "Yahoo!",
+    SURUGAYA: "駿河屋",
+    PLAYSTATION_STORE: "PlayStation Store",
+    NINTENDO_STORE: "Nintendo Store",
+    STEAM: "Steam",
+  };
+  return map[category] || category;
+}
+
+function buildSpotlightGames(top: TopContents): GameItem[] {
+  return uniqueGames([top.releaseToday]);
+}
+
+function shuffleItems<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function SpotlightDetailCard(
+  { game, rankLabel, compact = false }: {
+    game: GameItem;
+    rankLabel: string;
+    compact?: boolean;
+  },
+) {
+  const youtubeEmbed = toYouTubeEmbed(game.youtubeUrl);
+  const catchCopy = game.catchCopy?.trim() || "";
+  const subCatch = game.subCatch?.trim() || "";
+  const isReleaseToday = isReleaseAnniversaryToday(game.releaseDate);
+  const purchaseLinks = (game.affiliates || [])
+    .filter((item) => item.url?.trim())
+    .map((item) => ({
+      label: formatAffiliateLabel(item.category),
+      url: item.url.trim(),
+    }));
+  const hasActionButtons = Boolean(game.officialSiteUrl) ||
+    purchaseLinks.length > 0;
+  const rowMinHeightClass = youtubeEmbed
+    ? (compact ? "md:min-h-[480px]" : "md:min-h-[520px]")
+    : (compact ? "md:min-h-[340px]" : "md:min-h-[360px]");
+
   return (
-    <section class="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <h3 class="text-lg font-black text-gray-900">{title}</h3>
-      {games.length === 0
-        ? <p class="text-sm text-gray-500">該当するゲームはありません。</p>
-        : (
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {games.map((g) => (
-              <a
-                href={`/app/games/${g.code}`}
-                class="group rounded-xl border border-gray-200 bg-gray-50 p-2 hover:bg-amber-50"
-              >
-                <img
-                  src={buildImageUrl(g.imageKey, "games")}
-                  alt={g.name}
-                  class="h-28 w-full rounded-lg object-cover"
-                />
-                <p class="mt-2 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-orange-700">
-                  {g.name}
+    <article class="spotlight-card soft-rise relative overflow-hidden rounded-3xl">
+      <div
+        class={`grid gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
+      >
+        <a
+          href={`/app/games/${game.code}`}
+          class={`relative block overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch ${
+            compact ? "h-[180px]" : "h-[220px]"
+          }`}
+        >
+          <div class="relative h-full w-full">
+            <img
+              src={buildImageUrl(game.imageKey, "games")}
+              alt={game.name}
+              class="absolute inset-0 h-full w-full object-contain object-center"
+            />
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
+          <div class="absolute left-3 top-3 z-10 flex max-w-[88%] flex-col items-start gap-1">
+            {(game.keywords || []).slice(0, 2).map((keyword) => (
+              <span class="inline-flex max-w-full truncate rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-emerald-100">
+                {keyword.name}
+              </span>
+            ))}
+          </div>
+        </a>
+
+        <div class="relative space-y-3 overflow-hidden md:col-span-2">
+          <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200">
+            <span class="inline-flex items-center gap-2">
+              <span>{rankLabel}</span>
+              {isReleaseToday && (
+                <span class="inline-flex items-center rounded-full border border-cyan-200/40 bg-cyan-300/12 px-2 py-0.5 text-[9px] font-black tracking-[0.12em] text-cyan-100/90">
+                  本日リリース
+                </span>
+              )}
+            </span>
+          </p>
+          <a href={`/app/games/${game.code}`} class="block">
+            <h3
+              class={compact
+                ? "text-lg font-black text-white sm:text-xl"
+                : "text-xl font-black text-white sm:text-2xl"}
+            >
+              {game.name}
+            </h3>
+          </a>
+          <p class="text-[10px] font-semibold tracking-[0.12em] text-cyan-100/75">
+            画像またはタイトルから詳細へ
+          </p>
+
+          {(catchCopy || subCatch) && (
+            <div class="space-y-1 rounded-xl border border-cyan-300/20 bg-black/15 px-3 py-2">
+              {catchCopy && (
+                <p
+                  class={compact
+                    ? "text-xs font-extrabold leading-snug text-cyan-50 sm:text-sm"
+                    : "text-sm font-extrabold leading-snug text-cyan-50 sm:text-base"}
+                >
+                  {catchCopy}
                 </p>
+              )}
+              {subCatch && (
+                <p
+                  class={compact
+                    ? "border-l-2 border-cyan-300/45 pl-2 text-[11px] leading-relaxed text-cyan-100/90 sm:text-xs"
+                    : "border-l-2 border-cyan-300/45 pl-2 text-xs leading-relaxed text-cyan-100/90 sm:text-sm"}
+                >
+                  {subCatch}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div
+            class={compact
+              ? "grid gap-1 text-[11px] text-slate-100 sm:grid-cols-2"
+              : "grid gap-1.5 text-[12px] text-slate-100 sm:grid-cols-2"}
+          >
+            <p class="spotlight-row">
+              <span>メーカー</span>
+              <strong>{game.manufacturer?.name || "-"}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>機種</span>
+              <strong>{game.machine?.name || "-"}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>ジャンル</span>
+              <strong>{formatGenre(game)}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>価格</span>
+              <strong>{formatPrice(game.listPrice)}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>発売日</span>
+              <strong class="flex items-center gap-2">
+                <span>{formatReleaseDate(game.releaseDate)}</span>
+                {isReleaseToday && (
+                  <span class="inline-flex items-center rounded-full border border-cyan-200/45 bg-cyan-300/15 px-2 py-0.5 text-[10px] font-black tracking-[0.12em] text-cyan-100">
+                    TODAY
+                  </span>
+                )}
+              </strong>
+            </p>
+          </div>
+
+          <div class="grid gap-3 md:grid-cols-2 md:items-start">
+            {youtubeEmbed && (
+              <section
+                class={compact
+                  ? "rounded-xl border border-cyan-300/25 bg-black/15 p-2 md:col-span-1"
+                  : "rounded-xl border border-cyan-300/25 bg-black/15 p-3 md:col-span-1"}
+              >
+                <p
+                  class={compact
+                    ? "text-[9px] font-black tracking-[0.16em] text-cyan-200"
+                    : "text-[10px] font-black tracking-[0.16em] text-cyan-200"}
+                >
+                  YOUTUBE
+                </p>
+                <div class="mt-2 aspect-video overflow-hidden rounded-lg border border-cyan-300/30 bg-black/20">
+                  <iframe
+                    class="h-full w-full"
+                    src={youtubeEmbed}
+                    title={`${game.name} movie`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </section>
+            )}
+
+            {hasActionButtons && (
+              <section
+                class={compact
+                  ? "rounded-xl border border-cyan-300/25 bg-black/15 p-2"
+                  : "rounded-xl border border-cyan-300/25 bg-black/15 p-3"}
+              >
+                <p
+                  class={compact
+                    ? "text-[9px] font-black tracking-[0.16em] text-cyan-200"
+                    : "text-[10px] font-black tracking-[0.16em] text-cyan-200"}
+                >
+                  OFFICIAL & BUY
+                </p>
+                <div
+                  class={compact
+                    ? "mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"
+                    : "mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2"}
+                >
+                  {game.officialSiteUrl && (
+                    <a
+                      href={game.officialSiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class={compact
+                        ? "group relative inline-flex min-h-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-3 py-2 text-center text-xs font-bold text-cyan-50 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30 hover:shadow-[0_12px_30px_rgba(34,211,238,0.18)]"
+                        : "group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30 hover:shadow-[0_12px_30px_rgba(34,211,238,0.18)]"}
+                    >
+                      <span class="relative z-10">公式サイト</span>
+                      <span class="absolute inset-y-0 left-[-35%] w-1/3 rotate-12 bg-white/30 blur-2xl opacity-0 transition duration-700 group-hover:translate-x-[280%] group-hover:opacity-100" />
+                    </a>
+                  )}
+                  {purchaseLinks.map((item) => (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class={compact
+                        ? "group relative inline-flex min-h-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-3 py-2 text-center text-xs font-bold text-cyan-100 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70 hover:shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
+                        : "group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70 hover:shadow-[0_12px_30px_rgba(15,23,42,0.25)]"}
+                    >
+                      <span class="relative z-10">{item.label}</span>
+                      <span class="absolute inset-y-0 left-[-35%] w-1/3 rotate-12 bg-white/25 blur-2xl opacity-0 transition duration-700 group-hover:translate-x-[280%] group-hover:opacity-100" />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SectionHeader(
+  { title, subtitle, href, showViewAll = false }: {
+    title: string;
+    subtitle: string;
+    href?: string;
+    showViewAll?: boolean;
+  },
+) {
+  return (
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">{title}</h2>
+        <p class="section-eyebrow mt-2">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function SpotlightCard({ game }: { game: GameItem }) {
+  const youtubeEmbed = toYouTubeEmbed(game.youtubeUrl);
+  const catchCopy = game.catchCopy?.trim() || "";
+  const subCatch = game.subCatch?.trim() || "";
+  const purchaseLinks = (game.affiliates || [])
+    .filter((item) => item.url?.trim())
+    .map((item) => ({
+      label: formatAffiliateLabel(item.category),
+      url: item.url.trim(),
+    }));
+  const hasActionButtons = Boolean(game.officialSiteUrl) ||
+    purchaseLinks.length > 0;
+  const rowMinHeightClass = youtubeEmbed
+    ? "md:min-h-[520px]"
+    : "md:min-h-[360px]";
+
+  return (
+    <article class="spotlight-card soft-rise relative overflow-hidden rounded-3xl">
+      <div
+        class={`grid gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
+      >
+        <a
+          href={`/app/games/${game.code}`}
+          class="relative block h-[220px] overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch"
+        >
+          <div class="relative h-full w-full">
+            <img
+              src={buildImageUrl(game.imageKey, "games")}
+              alt={game.name}
+              class="absolute inset-0 h-full w-full object-contain object-center"
+            />
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
+          <div class="absolute left-3 top-3 z-10 flex max-w-[88%] flex-col items-start gap-1">
+            {(game.keywords || []).slice(0, 2).map((keyword) => (
+              <span class="inline-flex max-w-full truncate rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-emerald-100">
+                {keyword.name}
+              </span>
+            ))}
+          </div>
+        </a>
+
+        <div class="relative space-y-3 overflow-hidden md:col-span-2">
+          <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200">
+            PICK 1
+          </p>
+          <a href={`/app/games/${game.code}`} class="block">
+            <h3 class="text-xl font-black text-white sm:text-2xl">
+              {game.name}
+            </h3>
+          </a>
+
+          {(catchCopy || subCatch) && (
+            <div class="space-y-1 rounded-xl border border-cyan-300/20 bg-black/15 px-3 py-2">
+              {catchCopy && (
+                <p class="text-sm font-extrabold leading-snug text-cyan-50 sm:text-base">
+                  {catchCopy}
+                </p>
+              )}
+              {subCatch && (
+                <p class="border-l-2 border-cyan-300/45 pl-2 text-xs leading-relaxed text-cyan-100/90 sm:text-sm">
+                  {subCatch}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div class="grid gap-1.5 text-[12px] text-slate-100 sm:grid-cols-2">
+            <p class="spotlight-row">
+              <span>メーカー</span>
+              <strong>{game.manufacturer?.name || "-"}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>機種</span>
+              <strong>{game.machine?.name || "-"}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>ジャンル</span>
+              <strong>{formatGenre(game)}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>価格</span>
+              <strong>{formatPrice(game.listPrice)}</strong>
+            </p>
+            <p class="spotlight-row">
+              <span>発売日</span>
+              <strong>{formatReleaseDate(game.releaseDate)}</strong>
+            </p>
+          </div>
+
+          <div class="grid gap-3 md:grid-cols-2 md:items-start">
+            {youtubeEmbed && (
+              <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3 md:col-span-1">
+                <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
+                  YOUTUBE
+                </p>
+                <div class="mt-2 aspect-video overflow-hidden rounded-lg border border-cyan-300/30 bg-black/20">
+                  <iframe
+                    class="h-full w-full"
+                    src={youtubeEmbed}
+                    title={`${game.name} movie`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </section>
+            )}
+
+            {hasActionButtons && (
+              <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3">
+                <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
+                  OFFICIAL & BUY
+                </p>
+                <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {game.officialSiteUrl && (
+                    <a
+                      href={game.officialSiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30 hover:shadow-[0_12px_30px_rgba(34,211,238,0.18)]"
+                    >
+                      <span class="relative z-10">公式サイト</span>
+                      <span class="absolute inset-y-0 left-[-35%] w-1/3 rotate-12 bg-white/30 blur-2xl opacity-0 transition duration-700 group-hover:translate-x-[280%] group-hover:opacity-100" />
+                    </a>
+                  )}
+                  {purchaseLinks.map((item) => (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 shadow-[0_0_0_rgba(0,0,0,0)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70 hover:shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
+                    >
+                      <span class="relative z-10">{item.label}</span>
+                      <span class="absolute inset-y-0 left-[-35%] w-1/3 rotate-12 bg-white/25 blur-2xl opacity-0 transition duration-700 group-hover:translate-x-[280%] group-hover:opacity-100" />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SmallPickCard({ game, order }: { game: GameItem; order: number }) {
+  return (
+    <a
+      href={`/app/games/${game.code}`}
+      class="soft-rise group block overflow-hidden rounded-2xl border border-sky-200 bg-white"
+    >
+      <div class="grid h-full grid-cols-[118px_1fr] gap-0">
+        <div class="h-full overflow-hidden">
+          <img
+            src={buildImageUrl(game.imageKey, "games")}
+            alt={game.name}
+            class="h-full min-h-[130px] w-full object-cover object-center"
+          />
+        </div>
+        <div class="flex min-h-[130px] flex-col justify-center p-3">
+          <p class="text-[10px] font-black tracking-[0.16em] text-sky-600">
+            PICK {order}
+          </p>
+          <p class="line-clamp-2 text-sm font-black text-slate-900 group-hover:text-sky-700">
+            {game.name}
+          </p>
+          <div class="mt-1 flex flex-wrap gap-1 text-[10px]">
+            <span class="rounded-full bg-sky-50 px-2 py-0.5 text-sky-700">
+              {game.genre?.name || "Genre"}
+            </span>
+            <span class="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">
+              {game.machine?.name || "Hard"}
+            </span>
+          </div>
+          <p class="mt-2 text-[10px] text-slate-500">
+            {formatReleaseDate(game.releaseDate)} リリース
+          </p>
+        </div>
+      </div>
+    </a>
+  );
+}
+
+function SpotlightSection({ games }: { games: GameItem[] }) {
+  const lead = games[0];
+  const sub = games.slice(1);
+
+  if (!lead) {
+    return (
+      <section class="rounded-3xl public-glass p-6">
+        <p class="text-sm text-slate-600">おすすめ作品は準備中です。</p>
+      </section>
+    );
+  }
+
+  return (
+    <section class="rounded-3xl public-glass p-4 sm:p-6">
+      <SectionHeader
+        title="Today Spotlight Picks"
+        subtitle="今日のスポットライト"
+        href="/app/games"
+        showViewAll={false}
+      />
+
+      <div class="mt-4 p-1 sm:p-2">
+        <SpotlightDetailCard game={lead} rankLabel="PICK 1" />
+
+        <div class="mt-3 grid gap-3 md:grid-cols-2">
+          {sub.map((game, index) => (
+            <SpotlightDetailCard
+              game={game}
+              rankLabel={`PICK ${index + 2}`}
+              compact={true}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TopGameCard({ game }: { game: GameItem }) {
+  const blocked = new Set(
+    [game.manufacturer?.name, game.machine?.name, game.genre?.name]
+      .map((v) => (v || "").trim())
+      .filter((v) => v.length > 0),
+  );
+  const seen = new Set<string>();
+  const keywordChips = (game.keywords || [])
+    .map((k) => ({ code: (k.code || "").trim(), name: (k.name || "").trim() }))
+    .filter((k) => k.code.length > 0 && k.name.length > 0)
+    .filter((k) => !blocked.has(k.name))
+    .filter((k) => {
+      if (seen.has(k.name)) return false;
+      seen.add(k.name);
+      return true;
+    })
+    .slice(0, 4);
+
+  const filterHref = (
+    key: "manufacturerCode" | "machineCode" | "genreCode" | "keywordCode",
+    value?: string,
+  ) => {
+    if (!value) return "/app/games";
+    return `/app/games?${key}=${encodeURIComponent(value)}`;
+  };
+  const detailHref = `/app/games/${game.code}`;
+
+  return (
+    <article class="soft-rise group relative block overflow-hidden rounded-2xl border border-sky-200 bg-white">
+      <div class="relative">
+        <a href={detailHref} class="block">
+          <img
+            src={buildImageUrl(game.imageKey, "games")}
+            alt={game.name}
+            class="h-44 w-full object-cover"
+          />
+        </a>
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+      </div>
+
+      <div class="space-y-3 p-3">
+        <a href={detailHref} class="block space-y-2">
+          <p class="line-clamp-2 text-sm font-extrabold text-slate-900 group-hover:text-sky-700">
+            {game.name}
+          </p>
+          {game.catchCopy && (
+            <p class="line-clamp-2 text-xs text-slate-600">{game.catchCopy}</p>
+          )}
+        </a>
+
+        <div class="space-y-2 text-[11px] text-slate-600">
+          <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <a
+              href={filterHref("manufacturerCode", game.manufacturer?.code)}
+              class="inline-flex max-w-full truncate rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 hover:bg-sky-200"
+            >
+              {game.manufacturer?.name || "メーカー未設定"}
+            </a>
+            <a
+              href={filterHref("machineCode", game.machine?.code)}
+              class="inline-flex max-w-full truncate rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 hover:bg-amber-200"
+            >
+              {game.machine?.name || "ハード未設定"}
+            </a>
+            <a
+              href={filterHref("genreCode", game.genre?.code)}
+              class="inline-flex max-w-full truncate rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-200"
+            >
+              {game.genre?.name || "ジャンル未設定"}
+            </a>
+          </div>
+          <p>{formatReleaseDate(game.releaseDate)} リリース</p>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap gap-1.5 text-[11px]">
+            {keywordChips.length === 0 ? null : keywordChips.map((k) => (
+              <a
+                href={filterHref("keywordCode", k.code)}
+                class="rounded-full border border-sky-200 bg-white px-2 py-0.5 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+              >
+                {k.name}
               </a>
             ))}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function TopGameStrip(
+  { title, subtitle, games = [], href, showViewAll = false }: {
+    title: string;
+    subtitle: string;
+    games?: GameItem[];
+    href: string;
+    showViewAll?: boolean;
+  },
+) {
+  return (
+    <section class="rounded-3xl public-glass p-5 sm:p-6">
+      <SectionHeader
+        title={title}
+        subtitle={subtitle}
+        href={href}
+        showViewAll={showViewAll}
+      />
+      {games.length === 0
+        ? <p class="mt-4 text-sm text-cyan-100/80">該当ゲームは準備中です。</p>
+        : (
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {games.map((g) => <TopGameCard game={g} />)}
           </div>
         )}
     </section>
   );
 }
 
-function CatalogSection(
-  { title, items, queryKey }: {
+function CatalogShowcase(
+  { title, subtitle, items, queryKey, resourceDir }: {
     title: string;
+    subtitle: string;
     items: CatalogItem[];
     queryKey: string;
+    resourceDir: "machines" | "genres" | "manufacturers";
   },
 ) {
+  const sorted = [...items].sort((a, b) => b.gameCount - a.gameCount);
+
   return (
-    <section class="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5">
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-black text-gray-900">{title}</h3>
-        <a
-          href="/app/games"
-          class="text-xs font-semibold text-orange-700 hover:text-orange-800"
-        >
-          一覧検索へ
-        </a>
-      </div>
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
+    <section class="rounded-3xl public-glass p-5 sm:p-6">
+      <SectionHeader title={title} subtitle={subtitle} href="/app/games" />
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {sorted.map((item) => (
           <a
             href={`/app/games?${queryKey}=${encodeURIComponent(item.code)}`}
-            class="flex items-center gap-3 rounded-xl border border-amber-200 bg-white p-3 hover:-translate-y-0.5 hover:shadow"
+            class="soft-rise group relative min-h-[180px] overflow-hidden rounded-2xl border border-sky-200"
           >
             <img
-              src={buildImageUrl(item.imageKey)}
+              src={buildImageUrl(item.imageKey, resourceDir)}
               alt={item.name}
-              class="h-14 w-14 rounded-lg border border-gray-200 object-cover"
+              class="absolute inset-0 h-full w-full object-cover"
             />
-            <div>
-              <p class="font-bold text-gray-900">{item.name}</p>
-              <p class="text-xs text-gray-500">登録ゲーム {item.gameCount}件</p>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+            <div class="absolute bottom-3 left-3 right-3">
+              <p class="line-clamp-1 text-base font-black text-white sm:text-lg">
+                {item.name}
+              </p>
+              <p class="text-xs text-sky-100">{item.gameCount} games</p>
             </div>
           </a>
         ))}
@@ -107,172 +733,191 @@ function CatalogSection(
   );
 }
 
-export default function Home({ data }: PageProps<PageData>) {
+function KeywordMotion({ keywords }: { keywords: KeywordItem[] }) {
+  const allKeywords = keywords
+    .filter((k) => k.code?.trim() && k.name?.trim())
+    .filter((k, index, arr) =>
+      arr.findIndex((x) => x.code === k.code) === index
+    );
+  const shuffled = shuffleItems(allKeywords);
+  const firstTrack = [...shuffled, ...shuffled];
+  const secondTrack = [...shuffled, ...shuffled];
+  const motionScale = Math.max(1, shuffled.length / 20);
+  const firstDuration = Math.round(46 * motionScale);
+  const secondDuration = Math.round(54 * motionScale);
+
   return (
-    <div class="min-h-screen bg-[radial-gradient(circle_at_15%_20%,#fff4d6,transparent_30%),radial-gradient(circle_at_85%_0%,#d1fae5,transparent_30%),linear-gradient(180deg,#fffaf0,#f8fafc)]">
-      <header class="sticky top-0 z-20 border-b border-amber-200 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a href="/" class="text-xl font-black tracking-wide text-gray-900">
-            パッケージの森
-          </a>
+    <section class="space-y-4 rounded-3xl public-glass p-5 sm:p-6">
+      <SectionHeader
+        title="Keyword Wave"
+        subtitle="注目キーワード"
+        href="/app/games"
+      />
 
-          <details class="relative">
-            <summary class="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold">
-              メニュー
-            </summary>
-            <div class="absolute right-0 mt-2 w-80 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
-              <form action="/app/games" method="get" class="space-y-2">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="ゲーム名・カナで検索"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="submit"
-                  class="w-full rounded-lg bg-orange-500 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-                >
-                  検索する
-                </button>
-              </form>
+      {shuffled.length === 0 && (
+        <p class="text-sm text-cyan-100/80">キーワードは準備中です。</p>
+      )}
 
-              <div class="mt-3 border-t pt-3">
-                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500">
-                  機種から検索
-                </p>
-                <div class="grid max-h-48 grid-cols-2 gap-1 overflow-auto text-xs">
-                  {data.machines.map((m) => (
-                    <a
-                      href={`/app/games?machineCode=${
-                        encodeURIComponent(m.code)
-                      }`}
-                      class="rounded bg-gray-100 px-2 py-1 hover:bg-gray-200"
-                    >
-                      {m.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </details>
+      <div class="keyword-marquee mt-2">
+        <div
+          class="keyword-marquee-track"
+          style={`animation-duration: ${firstDuration}s;`}
+        >
+          {firstTrack.map((k) => (
+            <a
+              href={`/app/games?keywordCode=${encodeURIComponent(k.code)}`}
+              class="public-chip rounded-full px-3 py-1.5 text-xs font-semibold hover:border-emerald-300 hover:text-emerald-700"
+            >
+              {k.name}
+            </a>
+          ))}
         </div>
-      </header>
+      </div>
 
-      <main class="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:space-y-8 sm:py-8">
-        <section class="rounded-3xl border border-amber-300 bg-white/80 p-5 shadow-sm sm:p-7">
-          <p class="text-xs font-semibold tracking-[0.2em] text-orange-700">
-            CURATED COLLECTION
-          </p>
-          <h1 class="mt-2 text-3xl font-black leading-tight text-gray-900 sm:text-5xl">
-            厳選された所持ゲームだけを、
-            <br />
-            物語のように紹介する。
-          </h1>
-          <p class="mt-3 max-w-3xl text-sm leading-relaxed text-gray-700 sm:text-base">
-            無数の作品を並べるのではなく、運営が実際に所有するパッケージから面白さと記憶に残る体験を軸に選抜。機種・ジャンル・メーカーを横断して、あなたに刺さる一本を見つけるためのサイトです。
-          </p>
-          <div class="mt-4 flex flex-wrap gap-2">
+      <div class="keyword-marquee">
+        <div
+          class="keyword-marquee-track reverse"
+          style={`animation-duration: ${secondDuration}s;`}
+        >
+          {secondTrack.map((k) => (
             <a
-              href="/app/games"
-              class="rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white hover:bg-black"
+              href={`/app/games?keywordCode=${encodeURIComponent(k.code)}`}
+              class="public-chip rounded-full px-3 py-1.5 text-xs font-semibold hover:border-sky-300 hover:text-sky-700"
             >
-              ゲームを探す
+              {k.name}
             </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NewsSection({ announcements }: { announcements: AnnouncementItem[] }) {
+  const items = announcements.slice(0, 3);
+
+  return (
+    <section class="rounded-3xl public-glass p-5 sm:p-6">
+      <SectionHeader
+        title="Latest Announcements"
+        subtitle="更新のお知らせ"
+        href="/announcements"
+      />
+      <div class="mt-4 grid gap-3 md:grid-cols-3">
+        {items.length === 0
+          ? <p class="text-sm text-cyan-100/80">お知らせは準備中です。</p>
+          : items.map((item) => (
             <a
-              href="/admin"
-              class="rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-semibold hover:bg-gray-50"
+              href={`/announcements/${item.id}`}
+              class="block rounded-2xl border border-cyan-300/20 bg-black/15 p-4 transition hover:border-cyan-200/45 hover:bg-black/25"
             >
-              管理画面
+              <p class="text-xs font-semibold tracking-[0.12em] text-cyan-200/80">
+                {item.publishedAt?.slice(0, 10) || item.createdAt.slice(0, 10)}
+              </p>
+              <p class="mt-2 line-clamp-2 text-sm font-bold text-white">
+                {item.title}
+              </p>
+              <p class="mt-2 line-clamp-3 text-xs text-cyan-50/75">
+                {item.excerpt}
+              </p>
             </a>
+          ))}
+      </div>
+    </section>
+  );
+}
+
+export default function Home({ data }: PageProps<PageData>) {
+  const spotlightGames = buildSpotlightGames(data.top);
+
+  return (
+    <div class="public-bg flex h-full flex-col">
+      <Head>
+        <title>PACKAGE FROESST</title>
+        <meta
+          name="description"
+          content="PACKAGE FROESSTは、ゲームの検索・閲覧・お知らせ・問い合わせをまとめたゲームアーカイブサイトです。"
+        />
+      </Head>
+      <section class="hero-stage relative min-h-[68vh] sm:min-h-[76vh]">
+        <img
+          src="/key-visual.png"
+          alt="Key visual"
+          class="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-950/45 to-[#060b16]/90" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(56,189,248,0.30),transparent_36%),radial-gradient(circle_at_82%_20%,rgba(34,197,94,0.20),transparent_40%),radial-gradient(circle_at_50%_90%,rgba(59,130,246,0.34),transparent_42%)]" />
+
+        <PublicHeader />
+
+        <div class="relative z-10 flex min-h-[68vh] items-end px-4 pb-8 pt-24 sm:min-h-[76vh] sm:px-8 sm:pb-12 lg:px-12">
+          <div class="max-w-4xl space-y-3">
+            <p class="text-[11px] font-black tracking-[0.22em] text-cyan-200/90">
+              CURATED GAME ARCHIVE
+            </p>
+            <h1 class="text-3xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">
+              CHOOSE YOUR NEXT
+              <br />
+              OBSESSION.
+            </h1>
+            <p class="max-w-2xl text-sm text-cyan-50/90 sm:text-base">
+              管理人の愛蔵パッケージ。名作しかない、珠玉のラインナップ。
+            </p>
           </div>
+        </div>
+      </section>
 
-          <form
-            action="/app/games"
-            method="get"
-            class="mt-5 grid gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3 md:grid-cols-5"
-          >
-            <input
-              type="text"
-              name="q"
-              placeholder="ゲーム名・カナで検索"
-              class="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm md:col-span-2"
-            />
-            <select
-              name="machineCode"
-              class="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">機種を選択</option>
-              {data.machines.map((m) => <option value={m.code}>{m.name}
-              </option>)}
-            </select>
-            <select
-              name="genreCode"
-              class="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">ジャンルを選択</option>
-              {data.genres.map((g) => <option value={g.code}>{g.name}</option>)}
-            </select>
-            <select
-              name="manufacturerCode"
-              class="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">メーカーを選択</option>
-              {data.manufacturers.map((m) => (
-                <option value={m.code}>{m.name}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              class="md:col-span-5 rounded-lg bg-orange-500 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-            >
-              この条件で探す
-            </button>
-          </form>
-        </section>
+      <main class="relative z-10 mt-0 w-full space-y-6 px-3 pb-8 sm:-mt-10 sm:space-y-8 sm:px-6 lg:px-10">
+        <SpotlightSection games={spotlightGames} />
 
-        <section class="rounded-2xl border border-teal-200 bg-teal-50/70 p-4 sm:p-5">
-          <h3 class="mb-2 text-sm font-black text-teal-800">
-            キーワードから探す
-          </h3>
-          <div class="flex flex-wrap gap-2">
-            {data.keywords.map((k) => (
-              <a
-                href={`/app/games?keywordCode=${encodeURIComponent(k.code)}`}
-                class="rounded-full border border-teal-300 bg-white px-3 py-1 text-xs hover:bg-teal-100"
-              >
-                {k.name} ({k.gameCount})
-              </a>
-            ))}
-          </div>
-        </section>
+        <NewsSection announcements={data.announcements} />
 
-        <CatalogSection
-          title="機種一覧"
+        <TopGameStrip
+          title="Recently Released Games"
+          subtitle="新着リリース"
+          games={data.top.recentlyReleased ?? []}
+          href="/app/games"
+          showViewAll={false}
+        />
+
+        <TopGameStrip
+          title="Recently Registered Games"
+          subtitle="新規登録タイトル"
+          games={data.top.recentlyUpdated ?? []}
+          href="/app/games?sort=recent"
+          showViewAll={false}
+        />
+
+        <KeywordMotion keywords={data.keywords} />
+
+        <CatalogShowcase
+          title="Browse by Platform"
+          subtitle="機種で探す"
           items={data.machines}
           queryKey="machineCode"
+          resourceDir="machines"
         />
-        <CatalogSection
-          title="ジャンル一覧"
+        <CatalogShowcase
+          title="Browse by Genre"
+          subtitle="ジャンルで探す"
           items={data.genres}
           queryKey="genreCode"
+          resourceDir="genres"
         />
-        <CatalogSection
-          title="メーカー一覧"
+        <CatalogShowcase
+          title="Browse by Publisher"
+          subtitle="メーカーで探す"
           items={data.manufacturers}
           queryKey="manufacturerCode"
+          resourceDir="manufacturers"
         />
 
         <TopGameStrip
-          title="本日が発売日のゲーム"
-          games={data.top.releaseToday}
-        />
-        <TopGameStrip
-          title="最近更新されたゲーム"
-          games={data.top.recentlyUpdated}
-        />
-        <TopGameStrip
-          title="ランダムピックアップ"
-          games={data.top.randomPicks}
+          title="Random Picks"
+          subtitle="気まぐれピックアップ"
+          games={data.top.randomPicks ?? []}
+          href="/app/games?sort=random"
+          showViewAll={false}
         />
       </main>
     </div>

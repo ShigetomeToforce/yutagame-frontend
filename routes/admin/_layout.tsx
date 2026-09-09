@@ -18,7 +18,7 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     );
   }
 
-  const serviceName = Deno.env.get("SERVICE_NAME") || "パッケージの森";
+  const serviceName = Deno.env.get("SERVICE_NAME") || "PACKAGE FROESST";
   const cleanPath = url.pathname.replace(/\/$/, "");
 
   // 📄 ページタイトルの判定
@@ -35,6 +35,10 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🏭 メーカー管理";
   } else if (cleanPath.startsWith("/admin/keywords")) {
     pageTitle = "🔑 キーワード管理";
+  } else if (cleanPath.startsWith("/admin/announcements")) {
+    pageTitle = "📰 お知らせ管理";
+  } else if (cleanPath.startsWith("/admin/contacts")) {
+    pageTitle = "✉️ 問い合わせ管理";
   } else if (cleanPath.startsWith("/admin/admins")) {
     pageTitle = "👤 Adminユーザー管理";
   } else if (cleanPath.startsWith("/admin/users")) {
@@ -72,6 +76,16 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       href: "/admin/keywords",
       active: cleanPath.startsWith("/admin/keywords"),
     },
+    {
+      label: "📰 お知らせ管理",
+      href: "/admin/announcements",
+      active: cleanPath.startsWith("/admin/announcements"),
+    },
+    {
+      label: "✉️ 問い合わせ管理",
+      href: "/admin/contacts",
+      active: cleanPath.startsWith("/admin/contacts"),
+    },
   ];
 
   const userMenuItems = [
@@ -97,8 +111,17 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       <div class="min-h-screen bg-gray-50 flex">
         {/* 左側：サイドバーをページ上部まで貫通させる（常時表示） */}
         <aside class="hidden md:block w-64 bg-white border-r border-gray-200 p-6 flex-shrink-0 self-stretch">
-          <div class="text-sm font-semibold text-gray-700 mb-4 px-1 truncate">
-            ⚙️ {serviceName} 管理画面
+          <div class="mb-4 px-1">
+            <div class="inline-flex items-center">
+              <img
+                src="/logo.png"
+                alt={serviceName}
+                class="h-10 w-auto max-w-[180px] object-contain"
+              />
+            </div>
+            <div class="mt-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+              管理画面
+            </div>
           </div>
           <nav class="space-y-1">
             {menuItems.map((item) => (

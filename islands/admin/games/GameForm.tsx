@@ -8,6 +8,23 @@ interface OptionItem {
   name: string;
 }
 
+interface GameAffiliateRecord {
+  id: number;
+  gameId: number;
+  category: string;
+  url: string;
+}
+
+const AFFILIATE_CATEGORY_OPTIONS = [
+  { value: "AMAZON", label: "Amazon" },
+  { value: "RAKUTEN", label: "楽天" },
+  { value: "YAHOO", label: "Yahoo!" },
+  { value: "SURUGAYA", label: "駿河屋" },
+  { value: "PLAYSTATION_STORE", label: "PlayStation Store" },
+  { value: "NINTENDO_STORE", label: "Nintendo Store" },
+  { value: "STEAM", label: "Steam" },
+] as const;
+
 interface GameRecord {
   id: number;
   name: string;
@@ -29,6 +46,7 @@ interface GameRecord {
   isClear: boolean;
   isFavourite: boolean;
   keywords?: Array<{ id: number }>;
+  affiliates?: GameAffiliateRecord[];
 }
 
 interface GameFormState {
@@ -103,6 +121,17 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
   const imageKey = useSignal<string | null>(null);
   const selectedImageFile = useSignal<File | null>(null);
   const previewImageUrl = useSignal<string | null>(null);
+  const affiliates = useSignal<GameAffiliateRecord[]>([]);
+  const affiliateSubmitting = useSignal(false);
+  const affiliateError = useSignal("");
+  const affiliateEditingId = useSignal<number | null>(null);
+  const affiliateCategory = useSignal<string>(
+    AFFILIATE_CATEGORY_OPTIONS[0].value,
+  );
+  const affiliateUrl = useSignal("");
+  const successToast = useSignal("");
+  const toastTimer = useSignal<number | null>(null);
+  const backHref = useSignal("/admin/games");
 
   useEffect(() => {
     void (async () => {
@@ -156,6 +185,16 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
           selectedKeywordIds.value = (game.keywords ?? []).map((keyword) =>
             keyword.id
           );
+          affiliates.value = (game.affiliates ?? []).slice().sort((a, b) =>
+            a.category.localeCompare(b.category)
+          );
+          const used = new Set(
+            (game.affiliates ?? []).map((item) => item.category),
+          );
+          const firstAvailable = AFFILIATE_CATEGORY_OPTIONS.find((option) =>
+            !used.has(option.value)
+          );
+          affiliateCategory.value = firstAvailable?.value ?? "";
         }
       } catch {
         manufacturers.value = [];
@@ -168,6 +207,23 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
       }
     })();
   }, [gameCode, mode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get("returnTo");
+    if (returnTo?.startsWith("/admin/games")) {
+      backHref.value = returnTo;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.value !== null) {
+        window.clearTimeout(toastTimer.value);
+      }
+    };
+  }, []);
 
   const updateField = <K extends keyof GameFormState>(
     key: K,
@@ -303,6 +359,145 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
     return "";
   };
 
+  const categoryLabel = (value: string) => {
+    const item = AFFILIATE_CATEGORY_OPTIONS.find((v) => v.value === value);
+    return item?.label || value;
+  };
+
+  const getAvailableAffiliateCategories = (
+    editingId: number | null,
+  ) => {
+    const used = new Set(
+      affiliates.value
+        .filter((item) => item.id !== editingId)
+        .map((item) => item.category),
+    );
+    return AFFILIATE_CATEGORY_OPTIONS.filter((option) =>
+      !used.has(option.value)
+    );
+  };
+
+  const showSuccessToast = (message: string) => {
+    successToast.value = message;
+    if (toastTimer.value !== null) {
+      window.clearTimeout(toastTimer.value);
+    }
+    toastTimer.value = window.setTimeout(() => {
+      successToast.value = "";
+      toastTimer.value = null;
+    }, 3200);
+  };
+
+  const resetAffiliateForm = () => {
+    affiliateEditingId.value = null;
+    const available = getAvailableAffiliateCategories(null);
+    affiliateCategory.value = available[0]?.value ?? "";
+    affiliateUrl.value = "";
+    affiliateError.value = "";
+  };
+
+  const startEditAffiliate = (item: GameAffiliateRecord) => {
+    affiliateEditingId.value = item.id;
+    affiliateCategory.value = item.category;
+    affiliateUrl.value = item.url;
+    affiliateError.value = "";
+  };
+
+  const saveAffiliate = async () => {
+    if (gameId.value === null) return;
+
+    const availableCategories = getAvailableAffiliateCategories(
+      affiliateEditingId.value,
+    );
+    const category = affiliateCategory.value || availableCategories[0]?.value ||
+      "";
+    const urlValue = affiliateUrl.value.trim();
+    if (!category) {
+      affiliateError.value = "追加できるカテゴリがありません。";
+      return;
+    }
+    if (!urlValue) {
+      affiliateError.value = "購入先URLは必須です。";
+      return;
+    }
+    if (!isValidUrl(urlValue)) {
+      affiliateError.value = "購入先URLの形式が正しくありません。";
+      return;
+    }
+
+    affiliateSubmitting.value = true;
+    affiliateError.value = "";
+    try {
+      if (affiliateEditingId.value === null) {
+        const created = await adminFetch<GameAffiliateRecord>(
+          `/admin/games/${gameId.value}/affiliates`,
+          {
+            method: "POST",
+            body: JSON.stringify({ category, url: urlValue }),
+          },
+        );
+        affiliates.value = [...affiliates.value, created].sort((a, b) =>
+          a.category.localeCompare(b.category)
+        );
+        showSuccessToast(
+          `${categoryLabel(created.category)} リンクを追加しました。`,
+        );
+      } else {
+        const updated = await adminFetch<GameAffiliateRecord>(
+          `/admin/games/${gameId.value}/affiliates/${affiliateEditingId.value}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ category, url: urlValue }),
+          },
+        );
+        affiliates.value = affiliates.value.map((item) =>
+          item.id === updated.id ? updated : item
+        ).sort((a, b) => a.category.localeCompare(b.category));
+        showSuccessToast(
+          `${categoryLabel(updated.category)} リンクを更新しました。`,
+        );
+      }
+      resetAffiliateForm();
+    } catch (error) {
+      affiliateError.value = error instanceof Error
+        ? error.message
+        : "購入リンクの保存に失敗しました。";
+    } finally {
+      affiliateSubmitting.value = false;
+    }
+  };
+
+  const removeAffiliate = async (item: GameAffiliateRecord) => {
+    if (gameId.value === null) return;
+
+    const confirmed = globalThis.confirm(
+      `${categoryLabel(item.category)} の購入リンクを削除しますか？`,
+    );
+    if (!confirmed) return;
+
+    affiliateSubmitting.value = true;
+    affiliateError.value = "";
+    try {
+      await adminFetch(
+        `/admin/games/${gameId.value}/affiliates/${item.id}`,
+        { method: "DELETE" },
+      );
+      affiliates.value = affiliates.value.filter((v) => v.id !== item.id);
+      showSuccessToast(
+        `${categoryLabel(item.category)} リンクを削除しました。`,
+      );
+      if (affiliateEditingId.value === item.id) {
+        resetAffiliateForm();
+      }
+    } catch (error) {
+      affiliateError.value = error instanceof Error
+        ? error.message
+        : "購入リンクの削除に失敗しました。";
+    } finally {
+      affiliateSubmitting.value = false;
+    }
+  };
+
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
 
@@ -355,7 +550,11 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
 
       await uploadImageIfNeeded(savedGame.id);
 
-      globalThis.location.href = "/admin/games";
+      if (mode === "edit") {
+        showSuccessToast(`${savedGame.name}の更新が正常にできました。`);
+      } else {
+        globalThis.location.href = "/admin/games";
+      }
     } catch (error) {
       submitError.value = error instanceof Error
         ? error.message
@@ -386,6 +585,12 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
         : "削除に失敗しました。";
     }
   };
+
+  const availableAffiliateCategories = getAvailableAffiliateCategories(
+    affiliateEditingId.value,
+  );
+  const shouldShowAffiliateForm = affiliateEditingId.value !== null ||
+    availableAffiliateCategories.length > 0;
 
   const renderSingleSelectField = (
     label: string,
@@ -662,7 +867,7 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
 
           <div class="flex items-center gap-3">
             <a
-              href="/admin/games"
+              href={backHref.value}
               class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800"
             >
               一覧へ戻る
@@ -684,6 +889,12 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
       </div>
 
       <form id="game-form" onSubmit={handleSubmit} class="space-y-8 p-4 sm:p-6">
+        {successToast.value && (
+          <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {successToast.value}
+          </div>
+        )}
+
         {isLoading.value && (
           <div class="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
             読み込み中です...
@@ -915,6 +1126,117 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
               placeholder="https://youtube.com/watch?v="
             />
           </div>
+
+          {mode === "edit" && gameId.value !== null && (
+            <div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 md:col-span-2">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-base font-semibold text-gray-900">
+                  購入リンク設定
+                </h2>
+                <p class="text-xs text-gray-500">
+                  カテゴリごとに1件まで登録できます
+                </p>
+              </div>
+
+              {affiliateError.value && (
+                <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {affiliateError.value}
+                </div>
+              )}
+
+              {shouldShowAffiliateForm
+                ? (
+                  <div class="grid gap-3 md:grid-cols-[220px_1fr_auto]">
+                    <select
+                      value={affiliateCategory.value}
+                      onChange={(event) => {
+                        affiliateCategory.value =
+                          (event.target as HTMLSelectElement).value;
+                      }}
+                      class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    >
+                      {availableAffiliateCategories.map((option) => (
+                        <option value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="url"
+                      value={affiliateUrl.value}
+                      onInput={(event) => {
+                        affiliateUrl.value =
+                          (event.target as HTMLInputElement).value;
+                      }}
+                      placeholder="https://example.com"
+                      class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    />
+
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveAffiliate()}
+                        disabled={affiliateSubmitting.value}
+                        class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                      >
+                        {affiliateEditingId.value === null ? "追加" : "更新"}
+                      </button>
+                      {affiliateEditingId.value !== null && (
+                        <button
+                          type="button"
+                          onClick={resetAffiliateForm}
+                          class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                        >
+                          キャンセル
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+                : (
+                  <p class="text-sm text-gray-500">
+                    すべてのカテゴリが登録済みです。編集または削除で調整してください。
+                  </p>
+                )}
+
+              <div class="space-y-2">
+                {affiliates.value.length === 0 && (
+                  <p class="text-sm text-gray-500">購入リンクは未登録です。</p>
+                )}
+
+                {affiliates.value.map((item) => (
+                  <div class="grid gap-2 rounded-md border border-gray-200 bg-white p-3 md:grid-cols-[220px_1fr_auto] md:items-center">
+                    <div class="text-sm font-semibold text-gray-800">
+                      {categoryLabel(item.category)}
+                    </div>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="truncate text-sm text-blue-700 hover:underline"
+                    >
+                      {item.url}
+                    </a>
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startEditAffiliate(item)}
+                        class="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                      >
+                        編集
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void removeAffiliate(item)}
+                        class="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div class="space-y-2 md:col-span-1">
             <label class="block text-sm font-medium text-gray-700">

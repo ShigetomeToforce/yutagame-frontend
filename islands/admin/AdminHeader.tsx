@@ -103,8 +103,17 @@ export default function AdminHeader({
 
       {isMenuOpen.value && (
         <div class="md:hidden border-t border-gray-100 bg-white px-4 py-3 shadow-inner">
-          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
-            ⚙️ {serviceName} メニュー
+          <div class="mb-2 px-3">
+            <div class="inline-flex items-center">
+              <img
+                src="/logo.png"
+                alt={serviceName}
+                class="h-9 w-auto max-w-[160px] object-contain"
+              />
+            </div>
+            <div class="mt-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+              メニュー
+            </div>
           </div>
           <nav class="space-y-1">
             {menuItems.map((item) => (

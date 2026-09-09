@@ -55,6 +55,38 @@ const EXPORT_COLUMNS = [
 ] as const;
 
 const SEARCH_REFRESH_EVENT = "resource-table-search";
+const GAME_LIST_STATE_KEY = "admin-games-list-state-v1";
+
+type GameListPersistedState = {
+  page: number;
+  limit: number;
+  query: string;
+  manufacturerIds: number[];
+  machineIds: number[];
+  genreIds: number[];
+  keywordIds: number[];
+  playStatus: string;
+  clearStatus: string;
+  favouriteStatus: string;
+};
+
+function loadPersistedState(): GameListPersistedState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(GAME_LIST_STATE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GameListPersistedState;
+    if (!parsed || typeof parsed !== "object") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedState(state: GameListPersistedState) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(GAME_LIST_STATE_KEY, JSON.stringify(state));
+}
 
 const triggerSearchRefresh = () => {
   if (typeof window !== "undefined") {
@@ -65,33 +97,23 @@ const triggerSearchRefresh = () => {
 export default function GameList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
-  const handleDelete = async (id: number) => {
-    const confirmed = globalThis.confirm(
-      "このゲームを削除してもよろしいですか？",
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await adminFetch(`/admin/games/${id}`, { method: "DELETE" });
-      globalThis.location.reload();
-    } catch (error) {
-      globalThis.alert(
-        error instanceof Error ? error.message : "削除に失敗しました。",
-      );
-    }
-  };
+  const initialState = loadPersistedState();
 
   const manufacturers = useSignal<OptionItem[]>([]);
   const machines = useSignal<OptionItem[]>([]);
   const genres = useSignal<OptionItem[]>([]);
   const keywords = useSignal<OptionItem[]>([]);
 
-  const selectedManufacturerIds = useSignal<number[]>([]);
-  const selectedMachineIds = useSignal<number[]>([]);
-  const selectedGenreIds = useSignal<number[]>([]);
-  const selectedKeywordIds = useSignal<number[]>([]);
+  const selectedManufacturerIds = useSignal<number[]>(
+    initialState?.manufacturerIds ?? [],
+  );
+  const selectedMachineIds = useSignal<number[]>(
+    initialState?.machineIds ?? [],
+  );
+  const selectedGenreIds = useSignal<number[]>(initialState?.genreIds ?? []);
+  const selectedKeywordIds = useSignal<number[]>(
+    initialState?.keywordIds ?? [],
+  );
 
   const manufacturerModalOpen = useSignal(false);
   const machineModalOpen = useSignal(false);
@@ -103,9 +125,18 @@ export default function GameList(
   const genreSearchQuery = useSignal("");
   const keywordSearchQuery = useSignal("");
 
-  const playStatus = useSignal("");
-  const clearStatus = useSignal("");
-  const favouriteStatus = useSignal("");
+  const playStatus = useSignal(initialState?.playStatus ?? "");
+  const clearStatus = useSignal(initialState?.clearStatus ?? "");
+  const favouriteStatus = useSignal(initialState?.favouriteStatus ?? "");
+
+  const buildEditHref = (gameCode: string) => {
+    const base = `/admin/games/${encodeURIComponent(gameCode)}`;
+    if (typeof window === "undefined") return base;
+    const returnTo = encodeURIComponent(
+      `${window.location.pathname}${window.location.search}`,
+    );
+    return `${base}?returnTo=${returnTo}`;
+  };
 
   useEffect(() => {
     void (async () => {
@@ -400,6 +431,23 @@ export default function GameList(
 
   return (
     <PaginatedResourceTable<Game>
+      initialPage={initialState?.page ?? 1}
+      initialLimit={initialState?.limit ?? 10}
+      initialQuery={initialState?.query ?? ""}
+      onStateChange={({ page, limit, query }) => {
+        savePersistedState({
+          page,
+          limit,
+          query,
+          manufacturerIds: selectedManufacturerIds.value,
+          machineIds: selectedMachineIds.value,
+          genreIds: selectedGenreIds.value,
+          keywordIds: selectedKeywordIds.value,
+          playStatus: playStatus.value,
+          clearStatus: clearStatus.value,
+          favouriteStatus: favouriteStatus.value,
+        });
+      }}
       rightActions={actions}
       searchExtras={
         <div class="space-y-4">
@@ -564,6 +612,9 @@ export default function GameList(
       emptyMessage="登録されているゲームはありません。"
       emptySearchMessage="検索条件に一致するゲームはありません。"
       getKey={(game) => game.id}
+      getRowHref={(game) => buildEditHref(game.code)}
+      rowAriaLabel={(game) => `${game.name} の編集画面へ移動`}
+      showRowChevron={true}
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">タイトル</th>
@@ -571,12 +622,11 @@ export default function GameList(
           <th class="p-4 w-52">メーカー</th>
           <th class="p-4 w-52">機種</th>
           <th class="p-4 w-40">発売日</th>
-          <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(game) => (
         <>
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
             <div class="min-w-0">
               <h3
                 class="font-bold text-gray-900 text-base truncate"
@@ -584,21 +634,6 @@ export default function GameList(
               >
                 {truncateText(game.name, 20)}
               </h3>
-            </div>
-            <div class="flex items-center gap-3 text-sm shrink-0">
-              <a
-                href={`/admin/games/${encodeURIComponent(game.code)}`}
-                class="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                編集
-              </a>
-              <button
-                type="button"
-                onClick={() => void handleDelete(game.id)}
-                class="text-red-600 hover:text-red-800 font-medium"
-              >
-                削除
-              </button>
             </div>
           </div>
 
@@ -656,21 +691,6 @@ export default function GameList(
           </td>
           <td class="p-4 text-gray-500 w-40 whitespace-nowrap">
             {formatDate(game.releaseDate)}
-          </td>
-          <td class="p-4 text-center space-x-2 w-32">
-            <a
-              href={`/admin/games/${encodeURIComponent(game.code)}`}
-              class="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              編集
-            </a>
-            <button
-              type="button"
-              onClick={() => void handleDelete(game.id)}
-              class="text-red-600 hover:text-red-800 font-medium"
-            >
-              削除
-            </button>
           </td>
         </>
       )}

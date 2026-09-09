@@ -19,24 +19,6 @@ interface Props {
 export default function AdminList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
-  const handleDelete = async (id: number) => {
-    const confirmed = globalThis.confirm(
-      "このAdminユーザーを削除してもよろしいですか？",
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await adminFetch(`/admin/admins/${id}`, { method: "DELETE" });
-      globalThis.location.reload();
-    } catch (error) {
-      globalThis.alert(
-        error instanceof Error ? error.message : "削除に失敗しました。",
-      );
-    }
-  };
-
   const createButton = (createHref && showCreate)
     ? (
       <a
@@ -80,16 +62,18 @@ export default function AdminList(
       emptyMessage="登録されているAdminユーザーはいません。"
       emptySearchMessage="検索条件に一致するAdminユーザーはいません。"
       getKey={(admin) => admin.id}
+      getRowHref={(admin) => `/admin/admins/${admin.id}`}
+      rowAriaLabel={(admin) => `${admin.name} の編集画面へ移動`}
+      showRowChevron={true}
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-64">名前</th>
           <th class="p-4 w-72">メールアドレス</th>
-          <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(admin) => (
         <>
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
             <div class="min-w-0">
               <h3
                 class="font-bold text-gray-900 text-base truncate"
@@ -97,21 +81,6 @@ export default function AdminList(
               >
                 {truncateText(admin.name, 30)}
               </h3>
-            </div>
-            <div class="flex items-center gap-3 text-sm shrink-0">
-              <a
-                href={`/admin/admins/${admin.id}`}
-                class="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                編集
-              </a>
-              <button
-                type="button"
-                onClick={() => void handleDelete(admin.id)}
-                class="text-red-600 hover:text-red-800 font-medium"
-              >
-                削除
-              </button>
             </div>
           </div>
 
@@ -138,21 +107,6 @@ export default function AdminList(
             title={admin.email}
           >
             {truncateText(admin.email, 50)}
-          </td>
-          <td class="p-4 text-center space-x-2 w-32">
-            <a
-              href={`/admin/admins/${admin.id}`}
-              class="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              編集
-            </a>
-            <button
-              type="button"
-              onClick={() => void handleDelete(admin.id)}
-              class="text-red-600 hover:text-red-800 font-medium"
-            >
-              削除
-            </button>
           </td>
         </>
       )}

@@ -70,24 +70,6 @@ export default function MachineList(
     })();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    const confirmed = globalThis.confirm(
-      "この機種を削除してもよろしいですか？",
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await adminFetch(`/admin/machines/${id}`, { method: "DELETE" });
-      globalThis.location.reload();
-    } catch (error) {
-      globalThis.alert(
-        error instanceof Error ? error.message : "削除に失敗しました。",
-      );
-    }
-  };
-
   const createButton = (createHref && showCreate)
     ? (
       <a
@@ -332,18 +314,21 @@ export default function MachineList(
       emptyMessage="登録されている機種はありません。"
       emptySearchMessage="検索条件に一致する機種はありません。"
       getKey={(machine) => machine.id}
+      getRowHref={(machine) =>
+        `/admin/machines/${encodeURIComponent(machine.code)}`}
+      rowAriaLabel={(machine) => `${machine.name} の編集画面へ移動`}
+      showRowChevron={true}
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">名前</th>
           <th class="p-4 w-52">カナ</th>
           <th class="p-4 w-52">メーカー</th>
           <th class="p-4 w-40">発売日</th>
-          <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(machine) => (
         <>
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
             <div class="min-w-0">
               <h3
                 class="font-bold text-gray-900 text-base truncate"
@@ -351,21 +336,6 @@ export default function MachineList(
               >
                 {truncateText(machine.name, 20)}
               </h3>
-            </div>
-            <div class="flex items-center gap-3 text-sm shrink-0">
-              <a
-                href={`/admin/machines/${encodeURIComponent(machine.code)}`}
-                class="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                編集
-              </a>
-              <button
-                type="button"
-                onClick={() => void handleDelete(machine.id)}
-                class="text-red-600 hover:text-red-800 font-medium"
-              >
-                削除
-              </button>
             </div>
           </div>
 
@@ -413,21 +383,6 @@ export default function MachineList(
           </td>
           <td class="p-4 text-gray-500 w-40 whitespace-nowrap">
             {formatDate(machine.releaseDate)}
-          </td>
-          <td class="p-4 text-center space-x-2 w-32">
-            <a
-              href={`/admin/machines/${encodeURIComponent(machine.code)}`}
-              class="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              編集
-            </a>
-            <button
-              type="button"
-              onClick={() => void handleDelete(machine.id)}
-              class="text-red-600 hover:text-red-800 font-medium"
-            >
-              削除
-            </button>
           </td>
         </>
       )}

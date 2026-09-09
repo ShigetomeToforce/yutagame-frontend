@@ -31,24 +31,6 @@ const EXPORT_COLUMNS = [
 export default function KeywordList(
   { rightActions, createHref, showCreate = true }: Props,
 ) {
-  const handleDelete = async (id: number) => {
-    const confirmed = globalThis.confirm(
-      "このキーワードを削除してもよろしいですか？",
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await adminFetch(`/admin/keywords/${id}`, { method: "DELETE" });
-      globalThis.location.reload();
-    } catch (error) {
-      globalThis.alert(
-        error instanceof Error ? error.message : "削除に失敗しました。",
-      );
-    }
-  };
-
   const createButton = (createHref && showCreate)
     ? (
       <a
@@ -110,17 +92,20 @@ export default function KeywordList(
       emptyMessage="登録されているキーワードはありません。"
       emptySearchMessage="検索条件に一致するキーワードはありません。"
       getKey={(keyword) => keyword.id}
+      getRowHref={(keyword) =>
+        `/admin/keywords/${encodeURIComponent(keyword.code)}`}
+      rowAriaLabel={(keyword) => `${keyword.name} の編集画面へ移動`}
+      showRowChevron={true}
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">名前</th>
           <th class="p-4 w-52">カナ</th>
           <th class="p-4 w-52">種別</th>
-          <th class="p-4 w-32 text-center">操作</th>
         </>
       )}
       renderMobileRow={(keyword) => (
         <>
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
             <div class="min-w-0">
               <h3
                 class="font-bold text-gray-900 text-base truncate"
@@ -128,21 +113,6 @@ export default function KeywordList(
               >
                 {truncateText(keyword.name, 20)}
               </h3>
-            </div>
-            <div class="flex items-center gap-3 text-sm shrink-0">
-              <a
-                href={`/admin/keywords/${encodeURIComponent(keyword.code)}`}
-                class="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                編集
-              </a>
-              <button
-                type="button"
-                onClick={() => void handleDelete(keyword.id)}
-                class="text-red-600 hover:text-red-800 font-medium"
-              >
-                削除
-              </button>
             </div>
           </div>
 
@@ -181,21 +151,6 @@ export default function KeywordList(
             title={keyword.keywordType ?? "-"}
           >
             {truncateText(keyword.keywordType ?? "-", 20)}
-          </td>
-          <td class="p-4 text-center space-x-2 w-32">
-            <a
-              href={`/admin/keywords/${encodeURIComponent(keyword.code)}`}
-              class="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              編集
-            </a>
-            <button
-              type="button"
-              onClick={() => void handleDelete(keyword.id)}
-              class="text-red-600 hover:text-red-800 font-medium"
-            >
-              削除
-            </button>
           </td>
         </>
       )}

@@ -1,5 +1,7 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 import GameSearchExplorer from "../../../islands/app/GameSearchExplorer.tsx";
+import PublicHeader from "../../_public_header.tsx";
 import {
   appFetch,
   CatalogItem,
@@ -46,13 +48,14 @@ export const handler: Handlers<PageData> = {
     });
 
     const [machines, genres, manufacturers, keywords, initialResponse] =
-      await Promise.all([
-        appFetch<CatalogItem[]>("/app/catalog/machines"),
-        appFetch<CatalogItem[]>("/app/catalog/genres"),
-        appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-        appFetch<KeywordItem[]>("/app/keywords"),
-        appFetch<SearchResponse>(`/app/games?${query.toString()}`),
-      ]);
+      await Promise
+        .all([
+          appFetch<CatalogItem[]>("/app/catalog/machines"),
+          appFetch<CatalogItem[]>("/app/catalog/genres"),
+          appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+          appFetch<KeywordItem[]>("/app/keywords"),
+          appFetch<SearchResponse>(`/app/games?${query.toString()}`),
+        ]);
 
     return ctx.render({
       machines,
@@ -67,58 +70,25 @@ export const handler: Handlers<PageData> = {
 
 export default function SearchPage({ data }: PageProps<PageData>) {
   return (
-    <div class="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-teal-50">
-      <header class="sticky top-0 z-20 border-b border-amber-200 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a href="/" class="text-lg font-black tracking-wide text-gray-900">
-            パッケージの森
-          </a>
-          <details class="relative">
-            <summary class="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              メニュー
-            </summary>
-            <div class="absolute right-0 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
-              <form action="/app/games" method="get" class="space-y-2">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="ゲーム名で検索"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="submit"
-                  class="w-full rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
-                >
-                  検索
-                </button>
-              </form>
+    <div class="public-bg flex h-full flex-col">
+      <Head>
+        <title>ゲーム検索 - PACKAGE FROESST</title>
+        <meta
+          name="description"
+          content="メーカー、機種、ジャンル、キーワードでゲームを検索できます。"
+        />
+      </Head>
+      <PublicHeader />
 
-              <div class="mt-3 border-t pt-3">
-                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500">
-                  機種から検索
-                </p>
-                <div class="grid max-h-40 grid-cols-2 gap-1 overflow-auto text-xs">
-                  {data.machines.map((m) => (
-                    <a
-                      href={`/app/games?machineCode=${
-                        encodeURIComponent(m.code)
-                      }`}
-                      class="rounded bg-gray-100 px-2 py-1 hover:bg-gray-200"
-                    >
-                      {m.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </header>
-
-      <main class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        <h1 class="mb-4 text-2xl font-black text-gray-900 sm:text-3xl">
-          ゲーム検索
-        </h1>
+      <main class="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-8 sm:py-8 lg:px-12">
+        <section class="rounded-3xl border border-cyan-300/20 bg-slate-950/60 px-5 py-5 text-cyan-50 shadow-2xl backdrop-blur-md sm:px-6">
+          <h1 class="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+            ゲーム検索
+          </h1>
+          <p class="mt-2 max-w-3xl text-sm text-cyan-50/80 sm:text-base">
+            メーカー、機種、ジャンル、キーワードで絞り込んでゲームを探せます。
+          </p>
+        </section>
         <GameSearchExplorer
           machines={data.machines}
           genres={data.genres}
