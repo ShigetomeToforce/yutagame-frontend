@@ -17,6 +17,9 @@ export default function SitemapPage() {
               <a href="/app/games">ゲーム検索</a>
             </li>
             <li>
+              <a href="/app/rankings">ランキング</a>
+            </li>
+            <li>
               <a href="/about">サイトについて</a>
             </li>
             <li>

@@ -58,6 +58,69 @@ function buildOutboundHref(
   return `/app/out?${query.toString()}`;
 }
 
+function TitleRankingBadge({ rank }: { rank?: number }) {
+  const rankTextClass = "text-[10px]";
+  const topRankStyle = {
+    1: "border-amber-100 bg-amber-400 shadow-amber-950/30",
+    2: "border-slate-100 bg-slate-300 shadow-slate-950/30",
+    3: "border-orange-100 bg-orange-500 shadow-orange-950/30",
+  }[rank ?? 0];
+  const crownStyle = {
+    1: "text-amber-300",
+    2: "text-slate-200",
+    3: "text-orange-300",
+  }[rank ?? 0];
+
+  if (topRankStyle) {
+    return (
+      <span class="relative inline-flex h-12 w-10 shrink-0">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span
+          class={`relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 text-white shadow-md ${topRankStyle}`}
+        >
+          <span aria-hidden="true" class="ranking-medal-shine" />
+          <span
+            aria-hidden="true"
+            class={`absolute left-1/2 top-[-0.9rem] z-10 -translate-x-1/2 text-lg leading-none drop-shadow-sm ${crownStyle}`}
+          >
+            ♛
+          </span>
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span
+            class={`relative z-10 font-black leading-none ${rankTextClass}`}
+          >
+            {rank}
+          </span>
+        </span>
+      </span>
+    );
+  }
+
+  if (rank) {
+    return (
+      <span class="relative inline-flex h-12 w-10 shrink-0">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-cyan-100 bg-cyan-600 font-black leading-none text-white shadow-md shadow-slate-950/30">
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span class={rankTextClass}>{rank}</span>
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span class="inline-flex shrink-0 rounded-full border border-slate-200/70 bg-slate-950/85 px-2.5 py-1 text-[11px] font-black text-slate-100 shadow-sm">
+      圏外
+    </span>
+  );
+}
+
 export const handler: Handlers<PageData> = {
   async GET(req, ctx) {
     const url = new URL(req.url);
@@ -167,11 +230,14 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
               <p class="text-[11px] font-black tracking-[0.22em] text-cyan-200/90">
                 GAME DETAIL
               </p>
-              <h1 class="max-w-3xl text-2xl font-black leading-[1.05] text-white sm:text-4xl lg:text-5xl">
-                {game.name}
-              </h1>
-              <p class="max-w-2xl text-sm text-cyan-50/90 sm:text-base">
-                {game.catchCopy || "キャッチコピー準備中"}
+              <div class="flex items-center gap-3">
+                <TitleRankingBadge rank={game.rank} />
+                <h1 class="max-w-3xl text-2xl font-black leading-[1.05] text-white sm:text-4xl lg:text-5xl">
+                  {game.name}
+                </h1>
+              </div>
+              <p class="min-h-5 max-w-2xl text-sm text-cyan-50/90 sm:min-h-6 sm:text-base">
+                {game.catchCopy || ""}
               </p>
               {game.subCatch && (
                 <p class="max-w-2xl border-l-2 border-cyan-300/45 pl-3 text-sm leading-relaxed text-cyan-100/90 sm:text-base">

@@ -18,6 +18,7 @@ interface SearchFilters {
   genreCode: string;
   manufacturerCode: string;
   keywordCode: string;
+  sort: string;
 }
 
 interface PageData {
@@ -40,6 +41,7 @@ export const handler: Handlers<PageData> = {
       genreCode: url.searchParams.get("genreCode") || "",
       manufacturerCode: url.searchParams.get("manufacturerCode") || "",
       keywordCode: url.searchParams.get("keywordCode") || "",
+      sort: url.searchParams.get("sort") || "release_asc",
     };
 
     const query = new URLSearchParams({
@@ -50,6 +52,7 @@ export const handler: Handlers<PageData> = {
       genreCode: initialFilters.genreCode,
       manufacturerCode: initialFilters.manufacturerCode,
       keywordCode: initialFilters.keywordCode,
+      sort: initialFilters.sort,
     });
     const visitorId = getCookieValue(
       req.headers.get("cookie") || "",

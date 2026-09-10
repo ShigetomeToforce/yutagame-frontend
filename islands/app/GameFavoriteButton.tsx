@@ -139,7 +139,7 @@ export default function GameFavoriteButton(
       class="rounded-2xl border border-fuchsia-300/30 bg-fuchsia-500/10 p-3 shadow-lg shadow-fuchsia-950/20"
       onClick={(event) => event.stopPropagation()}
     >
-      <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center">
         <button
           ref={buttonRef}
           type="button"
@@ -153,9 +153,6 @@ export default function GameFavoriteButton(
         >
           {sending ? "送信中" : votedVisual ? "押し完了" : "このゲームを推す"}
         </button>
-        <p class="whitespace-nowrap text-[11px] font-semibold text-fuchsia-100/80">
-          推し {status ? status.count.toLocaleString() : "-"}
-        </p>
       </div>
       {message && <p class="mt-3 text-sm text-fuchsia-100">{message}</p>}
     </div>

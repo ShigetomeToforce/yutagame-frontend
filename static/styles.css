@@ -145,6 +145,42 @@ body {
   box-shadow: 0 24px 36px rgba(21, 87, 150, 0.28);
 }
 
+.ranking-medal-shine {
+  position: absolute;
+  top: -45%;
+  right: -70%;
+  width: 35%;
+  height: 190%;
+  background: rgba(255, 255, 255, 0.72);
+  transform: rotate(45deg);
+  animation: ranking-medal-shine 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ranking-medal-shine {
+  0%, 74% {
+    right: -70%;
+    opacity: 0;
+  }
+  78% {
+    opacity: 0.9;
+  }
+  94% {
+    right: 135%;
+    opacity: 0.9;
+  }
+  100% {
+    right: 135%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ranking-medal-shine {
+    animation: none;
+  }
+}
+
 .keyword-marquee {
   overflow: hidden;
   white-space: nowrap;

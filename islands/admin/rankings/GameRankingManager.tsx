@@ -18,27 +18,30 @@ type RankingItem = {
 };
 
 type RankingResponse = {
-  currentMode: "draft" | "active";
-  current: RankingItem[];
-  draft: RankingItem[] | null;
-  active: RankingItem[] | null;
+  draft: RankingItem[];
+  active: RankingItem[];
 };
 
 export default function GameRankingManager() {
-  const items = useSignal<RankingItem[]>([]);
+  const activeItems = useSignal<RankingItem[]>([]);
+  const draftItems = useSignal<RankingItem[]>([]);
+  const selectedTab = useSignal<"active" | "draft">("active");
   const loading = useSignal(false);
   const saving = useSignal(false);
   const publishing = useSignal(false);
+  const discarding = useSignal(false);
   const dragIndex = useSignal<number | null>(null);
 
   const loadRanking = async () => {
     loading.value = true;
     try {
       const response = await adminFetch<RankingResponse>("/admin/rankings");
-      items.value = response.current ?? [];
+      activeItems.value = response.active ?? [];
+      draftItems.value = response.draft ?? [];
     } catch (error) {
       console.error(error);
-      items.value = [];
+      activeItems.value = [];
+      draftItems.value = [];
     } finally {
       loading.value = false;
     }
@@ -50,10 +53,10 @@ export default function GameRankingManager() {
 
   const reorderItems = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
-    const next = [...items.value];
+    const next = [...draftItems.value];
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
-    items.value = next;
+    draftItems.value = next;
   };
 
   const handleSaveDraft = async () => {
@@ -65,10 +68,11 @@ export default function GameRankingManager() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          gameIds: items.value.map((item) => item.gameId),
+          gameIds: draftItems.value.map((item) => item.gameId),
         }),
       });
       await loadRanking();
+      selectedTab.value = "draft";
     } finally {
       saving.value = false;
     }
@@ -81,8 +85,22 @@ export default function GameRankingManager() {
         method: "POST",
       });
       await loadRanking();
+      selectedTab.value = "active";
     } finally {
       publishing.value = false;
+    }
+  };
+
+  const handleDiscardDraft = async () => {
+    discarding.value = true;
+    try {
+      await adminFetch("/admin/rankings/draft", {
+        method: "DELETE",
+      });
+      await loadRanking();
+      selectedTab.value = "active";
+    } finally {
+      discarding.value = false;
     }
   };
 
@@ -90,6 +108,16 @@ export default function GameRankingManager() {
     if (!Number.isFinite(price) || price === 0) return "¥0";
     return `¥${price.toLocaleString("ja-JP")}`;
   };
+
+  const startDraftFromActive = async () => {
+    if (activeItems.value.length === 0) return;
+    draftItems.value = [...activeItems.value];
+    selectedTab.value = "draft";
+    await handleSaveDraft();
+  };
+
+  const isDraftView = selectedTab.value === "draft";
+  const items = isDraftView ? draftItems.value : activeItems.value;
 
   return (
     <div class="space-y-6">
@@ -103,24 +131,75 @@ export default function GameRankingManager() {
           </h1>
         </div>
 
-        <div class="flex flex-wrap gap-2 justify-end">
+        {isDraftView && draftItems.value.length > 0 && (
+          <div class="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              disabled={discarding.value || saving.value || publishing.value ||
+                loading.value}
+              class="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {discarding.value ? "破棄中..." : "一時保存を破棄"}
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving.value || loading.value}
+              class="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving.value ? "一時保存中..." : "一時保存"}
+            </button>
+            <button
+              type="button"
+              onClick={handlePublish}
+              disabled={publishing.value || loading.value}
+              class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {publishing.value ? "公開中..." : "保存して公開"}
+            </button>
+          </div>
+        )}
+        {!isDraftView && activeItems.value.length > 0 &&
+          draftItems.value.length === 0 && (
           <button
             type="button"
-            onClick={handleSaveDraft}
+            onClick={startDraftFromActive}
             disabled={saving.value || loading.value}
             class="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving.value ? "一時保存中..." : "一時保存"}
+            ランキングを編集
           </button>
-          <button
-            type="button"
-            onClick={handlePublish}
-            disabled={publishing.value || loading.value}
-            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {publishing.value ? "公開中..." : "順位を保存"}
-          </button>
-        </div>
+        )}
+      </div>
+
+      <div class="flex border-b border-slate-200">
+        <button
+          type="button"
+          onClick={() => {
+            selectedTab.value = "active";
+          }}
+          class={`border-b-2 px-4 py-3 text-sm font-bold transition ${
+            !isDraftView
+              ? "border-emerald-600 text-emerald-700"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          現在のランキング
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            selectedTab.value = "draft";
+          }}
+          class={`border-b-2 px-4 py-3 text-sm font-bold transition ${
+            isDraftView
+              ? "border-emerald-600 text-emerald-700"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          一時保存中のランキング
+        </button>
       </div>
 
       {loading.value && (
@@ -129,13 +208,15 @@ export default function GameRankingManager() {
         </div>
       )}
 
-      {!loading.value && items.value.length === 0 && (
+      {!loading.value && items.length === 0 && (
         <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-          登録済みのゲームがありません。
+          {isDraftView
+            ? "一時保存中のランキングはありません。"
+            : "現在公開中のランキングはありません。"}
         </div>
       )}
 
-      {!loading.value && items.value.length > 0 && (
+      {!loading.value && items.length > 0 && (
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div class="overflow-x-auto">
             <table class="min-w-[72rem] w-full table-fixed border-collapse text-left text-sm">
@@ -152,18 +233,24 @@ export default function GameRankingManager() {
                 </tr>
               </thead>
               <tbody>
-                {items.value.map((item, index) => (
+                {items.map((item, index) => (
                   <tr
                     key={item.gameId}
-                    draggable
+                    draggable={isDraftView}
                     onDragStart={() => {
+                      if (!isDraftView) return;
                       dragIndex.value = index;
                     }}
                     onDragOver={(event) => {
                       event.preventDefault();
                     }}
                     onDrop={() => {
-                      if (dragIndex.value === null) return;
+                      if (!isDraftView) {
+                        return;
+                      }
+                      if (dragIndex.value === null) {
+                        return;
+                      }
                       reorderItems(dragIndex.value, index);
                       dragIndex.value = null;
                     }}

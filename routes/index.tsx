@@ -63,6 +63,7 @@ export const handler: Handlers<PageData> = {
               recentlyReleased: [],
               recentlyUpdated: [],
               randomPicks: [],
+              rankingTop20: [],
               favoriteRanking: [],
             },
             announcements: [],
@@ -424,8 +425,8 @@ function SectionHeader(
         <p class="section-eyebrow mt-2">{subtitle}</p>
       </div>
       {href && showViewAll && (
-        <a href={href} class="section-link">
-          View All
+        <a href={href} class="section-view-btn">
+          View ALL
         </a>
       )}
     </div>
@@ -667,6 +668,65 @@ function SpotlightSection({ games }: { games: GameItem[] }) {
   );
 }
 
+function RankingBadge({ rank }: { rank?: number }) {
+  const rankTextClass = "text-[10px]";
+  const topRankStyle = {
+    1: "border-amber-100 bg-amber-400 text-white shadow-amber-950/30",
+    2: "border-slate-100 bg-slate-300 text-white shadow-slate-950/30",
+    3: "border-orange-100 bg-orange-500 text-white shadow-orange-950/30",
+  }[rank ?? 0];
+  const crownStyle = {
+    1: "text-amber-300",
+    2: "text-slate-200",
+    3: "text-orange-300",
+  }[rank ?? 0];
+
+  if (topRankStyle) {
+    return (
+      <div class="absolute left-2 top-2 z-10 h-12 w-10">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span
+          class={`relative flex h-10 w-10 flex-col items-center justify-center overflow-hidden rounded-full border-2 text-center font-black leading-none shadow-md ${topRankStyle}`}
+        >
+          <span aria-hidden="true" class="ranking-medal-shine" />
+          <span
+            aria-hidden="true"
+            class={`absolute left-1/2 top-[-0.9rem] z-10 -translate-x-1/2 text-lg leading-none drop-shadow-sm ${crownStyle}`}
+          >
+            ♛
+          </span>
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span class={rankTextClass}>{rank}</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (rank) {
+    return (
+      <div class="absolute left-2 top-2 z-10 h-12 w-10">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="relative flex h-10 w-10 flex-col items-center justify-center rounded-full border-2 border-cyan-100 bg-cyan-600 font-black leading-none text-white shadow-md shadow-slate-950/30">
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span class={rankTextClass}>{rank}</span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div class="absolute left-2 top-2 z-10 rounded-full border border-slate-200/70 bg-slate-950/85 px-2.5 py-1 text-[11px] font-black text-slate-100 shadow-sm">
+      圏外
+    </div>
+  );
+}
+
 function TopGameCard({ game }: { game: GameItem }) {
   const filterHref = (
     key: "manufacturerCode" | "machineCode" | "genreCode" | "keywordCode",
@@ -696,6 +756,7 @@ function TopGameCard({ game }: { game: GameItem }) {
           />
         </a>
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <RankingBadge rank={game.rank} />
         <div class="absolute right-3 top-3 z-10">
           <GameFavoriteButton code={game.code} variant="card" />
         </div>
@@ -765,12 +826,20 @@ function TopGameCard({ game }: { game: GameItem }) {
 }
 
 function TopGameStrip(
-  { title, subtitle, games = [], href, showViewAll = false }: {
+  {
+    title,
+    subtitle,
+    games = [],
+    href,
+    showViewAll = false,
+    emptyMessage = "該当ゲームは準備中です。",
+  }: {
     title: string;
     subtitle: string;
     games?: GameItem[];
     href: string;
     showViewAll?: boolean;
+    emptyMessage?: string;
   },
 ) {
   return (
@@ -782,7 +851,7 @@ function TopGameStrip(
         showViewAll={showViewAll}
       />
       {games.length === 0
-        ? <p class="mt-4 text-sm text-cyan-100/80">該当ゲームは準備中です。</p>
+        ? <p class="mt-4 text-sm text-cyan-100/80">{emptyMessage}</p>
         : (
           <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {games.map((g) => <TopGameCard key={g.code} game={g} />)}
@@ -988,6 +1057,15 @@ export default function Home({ data }: PageProps<PageData>) {
           games={data.top.recentlyUpdated ?? []}
           href="/app/games?sort=recent"
           showViewAll={false}
+        />
+
+        <TopGameStrip
+          title="Latest Ranking TOP 20"
+          subtitle="最新ゲームランキング"
+          games={data.top.rankingTop20 ?? []}
+          href="/app/rankings"
+          showViewAll
+          emptyMessage="最新のランキングが発表されていません"
         />
 
         <KeywordMotion keywords={data.keywords} />

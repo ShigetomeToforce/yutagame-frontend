@@ -15,6 +15,7 @@ interface SearchFilters {
   genreCode: string;
   manufacturerCode: string;
   keywordCode: string;
+  sort: string;
 }
 
 interface Props {
@@ -24,6 +25,65 @@ interface Props {
   keywords: KeywordItem[];
   initialFilters: SearchFilters;
   initialResponse: SearchResponse;
+}
+
+function RankingBadge({ rank }: { rank?: number }) {
+  const rankTextClass = "text-[10px]";
+  const topRankStyle = {
+    1: "border-amber-100 bg-amber-400 text-white shadow-amber-950/30",
+    2: "border-slate-100 bg-slate-300 text-white shadow-slate-950/30",
+    3: "border-orange-100 bg-orange-500 text-white shadow-orange-950/30",
+  }[rank ?? 0];
+  const crownStyle = {
+    1: "text-amber-300",
+    2: "text-slate-200",
+    3: "text-orange-300",
+  }[rank ?? 0];
+
+  if (topRankStyle) {
+    return (
+      <div class="absolute left-2 top-2 z-10 h-12 w-10">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span
+          class={`relative flex h-10 w-10 flex-col items-center justify-center overflow-hidden rounded-full border-2 text-center font-black leading-none shadow-md ${topRankStyle}`}
+        >
+          <span aria-hidden="true" class="ranking-medal-shine" />
+          <span
+            aria-hidden="true"
+            class={`absolute left-1/2 top-[-0.9rem] z-10 -translate-x-1/2 text-lg leading-none drop-shadow-sm ${crownStyle}`}
+          >
+            ♛
+          </span>
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span class={rankTextClass}>{rank}</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (rank) {
+    return (
+      <div class="absolute left-2 top-2 z-10 h-12 w-10">
+        <span class="absolute bottom-0 left-1 h-3.5 w-2 rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="absolute bottom-0 right-1 h-3.5 w-2 -rotate-[28deg] bg-red-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_76%,0_100%)]" />
+        <span class="relative flex h-10 w-10 flex-col items-center justify-center rounded-full border-2 border-cyan-100 bg-cyan-600 font-black leading-none text-white shadow-md shadow-slate-950/30">
+          <span class="absolute top-1 text-[6px] font-black uppercase leading-none">
+            No
+          </span>
+          <span class={rankTextClass}>{rank}</span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div class="absolute left-2 top-2 z-10 rounded-full border border-slate-200/70 bg-slate-950/85 px-2.5 py-1 text-[11px] font-black text-slate-100 shadow-sm">
+      圏外
+    </div>
+  );
 }
 
 export default function GameSearchExplorer(props: Props) {
@@ -44,6 +104,9 @@ export default function GameSearchExplorer(props: Props) {
       params.set("manufacturerCode", value.manufacturerCode);
     }
     if (value.keywordCode) params.set("keywordCode", value.keywordCode);
+    if (value.sort && value.sort !== "release_asc") {
+      params.set("sort", value.sort);
+    }
     const query = params.toString();
     return query ? `?${query}` : "";
   };
@@ -304,38 +367,60 @@ export default function GameSearchExplorer(props: Props) {
                 >
                   <option value="">キーワード</option>
                   {props.keywords.filter((k) => k.gameCount > 0).map((k) => (
-                    <option value={k.code}>{k.name} ({k.gameCount})</option>
+                    <option value={k.code}>{k.name}</option>
                   ))}
                 </select>
               </label>
             </div>
           </div>
 
-          <div class="flex justify-end gap-2 border-t border-sky-200/25 pt-3">
-            <button
-              type="submit"
-              disabled={loading.value}
-              class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
-            >
-              検索する
-            </button>
-            <button
-              type="button"
-              onClick={() => {
+          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-sky-200/25 pt-3">
+            <select
+              value={filters.value.sort}
+              onChange={(event) => {
                 filters.value = {
-                  q: "",
-                  machineCode: "",
-                  genreCode: "",
-                  manufacturerCode: "",
-                  keywordCode: "",
+                  ...filters.value,
+                  sort: (event.target as HTMLSelectElement).value,
                 };
-                syncFiltersToUrl(filters.value);
-                void applySearch(1, false);
               }}
-              class="rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50"
+              aria-label="並び順"
+              class="h-[42px] rounded-xl border border-sky-200 bg-white px-3 text-sm text-slate-800"
             >
-              条件をクリア
-            </button>
+              <option value="release_desc">リリース日の新しい順</option>
+              <option value="release_asc">リリース日の古い順</option>
+              <option value="kana_asc">五十音順</option>
+              <option value="price_asc">価格の安い順</option>
+              <option value="price_desc">価格の高い順</option>
+              <option value="rank_asc">ランキングの高い順</option>
+              <option value="rank_desc">ランキングの低い順</option>
+            </select>
+            <div class="flex gap-2">
+              <button
+                type="submit"
+                disabled={loading.value}
+                class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
+              >
+                検索する
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  filters.value = {
+                    q: "",
+                    machineCode: "",
+                    genreCode: "",
+                    manufacturerCode: "",
+                    keywordCode: "",
+                    sort: "release_asc",
+                  };
+                  syncFiltersToUrl(filters.value);
+                  void applySearch(1, false);
+                }}
+                class="rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50"
+              >
+                条件をクリア
+              </button>
+            </div>
           </div>
         </form>
       </section>
@@ -388,6 +473,7 @@ export default function GameSearchExplorer(props: Props) {
                   class="h-56 w-full object-cover"
                 />
                 <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <RankingBadge rank={game.rank} />
                 <div
                   class="absolute right-3 top-3 z-10"
                   onClick={(event) => event.stopPropagation()}
@@ -475,8 +561,6 @@ export default function GameSearchExplorer(props: Props) {
         </div>
       )}
 
-      {!loading.value && !error.value && renderKeywordWave()}
-
       {hasMore && (
         <div class="flex justify-center pt-2">
           <button
@@ -485,10 +569,12 @@ export default function GameSearchExplorer(props: Props) {
             disabled={loading.value}
             class="rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-400 disabled:opacity-60"
           >
-            {loading.value ? "読み込み中..." : "もっと見る"}
+            {loading.value ? "読み込み中..." : "View More"}
           </button>
         </div>
       )}
+
+      {!loading.value && !error.value && renderKeywordWave()}
     </div>
   );
 }

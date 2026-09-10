@@ -58,6 +58,7 @@ import * as $announcements_index from "./routes/announcements/index.tsx";
 import * as $app_games_code_ from "./routes/app/games/[code].tsx";
 import * as $app_games_index from "./routes/app/games/index.tsx";
 import * as $app_out from "./routes/app/out.ts";
+import * as $app_rankings from "./routes/app/rankings.tsx";
 import * as $commercial from "./routes/commercial.tsx";
 import * as $contact from "./routes/contact.tsx";
 import * as $faq from "./routes/faq.tsx";
@@ -103,6 +104,7 @@ import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $app_ContactForm from "./islands/app/ContactForm.tsx";
 import * as $app_GameFavoriteButton from "./islands/app/GameFavoriteButton.tsx";
 import * as $app_GameSearchExplorer from "./islands/app/GameSearchExplorer.tsx";
+import * as $app_PublicRankingExplorer from "./islands/app/PublicRankingExplorer.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -166,6 +168,7 @@ const manifest = {
     "./routes/app/games/[code].tsx": $app_games_code_,
     "./routes/app/games/index.tsx": $app_games_index,
     "./routes/app/out.ts": $app_out,
+    "./routes/app/rankings.tsx": $app_rankings,
     "./routes/commercial.tsx": $commercial,
     "./routes/contact.tsx": $contact,
     "./routes/faq.tsx": $faq,
@@ -227,6 +230,7 @@ const manifest = {
     "./islands/app/ContactForm.tsx": $app_ContactForm,
     "./islands/app/GameFavoriteButton.tsx": $app_GameFavoriteButton,
     "./islands/app/GameSearchExplorer.tsx": $app_GameSearchExplorer,
+    "./islands/app/PublicRankingExplorer.tsx": $app_PublicRankingExplorer,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,
   },

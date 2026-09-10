@@ -62,6 +62,12 @@ export default function PublicHeader() {
                     ゲーム検索
                   </a>
                   <a
+                    href="/app/rankings"
+                    class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
+                  >
+                    ランキング
+                  </a>
+                  <a
                     href="/about"
                     class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
                   >

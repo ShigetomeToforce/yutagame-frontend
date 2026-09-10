@@ -65,6 +65,9 @@ export interface GameItem {
   releaseDate: string;
   officialSiteUrl: string;
   youtubeUrl: string;
+  rank?: number;
+  previousRank?: number;
+  rankingCount?: number;
   manufacturer?: LinkedMaster;
   machine?: LinkedMaster;
   genre?: LinkedMaster;
@@ -80,11 +83,19 @@ export interface SearchResponse {
   limit: number;
 }
 
+export interface RankingQuery {
+  type?: "curated" | "views" | "favorites";
+  period?: "monthly" | "yearly" | "total";
+  page?: number;
+  limit?: number;
+}
+
 export interface TopContents {
   releaseToday: GameItem[];
   recentlyReleased: GameItem[];
   recentlyUpdated: GameItem[];
   randomPicks: GameItem[];
+  rankingTop20: GameItem[];
   favoriteRanking: FavoriteRankingItem[];
 }
 
@@ -127,6 +138,7 @@ export interface SearchQuery {
   genreCode?: string;
   manufacturerCode?: string;
   keywordCode?: string;
+  sort?: string;
   page?: number;
   limit?: number;
   visitorId?: string;
@@ -229,6 +241,7 @@ function buildQueryString(params: SearchQuery): string {
     query.set("manufacturerCode", params.manufacturerCode);
   }
   if (params.keywordCode) query.set("keywordCode", params.keywordCode);
+  if (params.sort) query.set("sort", params.sort);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
   if (params.visitorId) query.set("visitorId", params.visitorId);
@@ -243,6 +256,19 @@ export async function searchGames(
   const visitorId = params.visitorId || getVisitorIdFromCookie();
   return await appFetch<SearchResponse>(
     `/app/games${buildQueryString({ ...params, visitorId })}`,
+  );
+}
+
+export async function fetchPublicRanking(
+  params: RankingQuery,
+): Promise<SearchResponse> {
+  const query = new URLSearchParams();
+  if (params.type) query.set("type", params.type);
+  if (params.period) query.set("period", params.period);
+  if (params.page) query.set("page", String(params.page));
+  if (params.limit) query.set("limit", String(params.limit));
+  return await appFetch<SearchResponse>(
+    `/app/rankings/page?${query.toString()}`,
   );
 }
 
