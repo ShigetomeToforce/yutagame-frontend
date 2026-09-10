@@ -10,6 +10,7 @@ import {
   KeywordItem,
   SearchResponse,
 } from "../../../utils/appApi.ts";
+import { getCookieValue } from "../../../utils/publicEvent.ts";
 
 interface SearchFilters {
   q: string;
@@ -50,6 +51,13 @@ export const handler: Handlers<PageData> = {
       manufacturerCode: initialFilters.manufacturerCode,
       keywordCode: initialFilters.keywordCode,
     });
+    const visitorId = getCookieValue(
+      req.headers.get("cookie") || "",
+      "visitor_id",
+    );
+    if (visitorId) {
+      query.set("visitorId", visitorId);
+    }
 
     try {
       const [machines, genres, manufacturers, keywords, initialResponse] =

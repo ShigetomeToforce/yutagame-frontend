@@ -66,10 +66,12 @@ export default function GameSearchExplorer(props: Props) {
     return `/app/games?${key}=${encodeURIComponent(value)}`;
   };
 
-  const topKeywords = props.keywords
-    .filter((k) => k.gameCount > 0)
-    .sort((a, b) => b.gameCount - a.gameCount)
-    .slice(0, 18);
+  const keywordWaveItems = props.keywords
+    .filter((k) => k.code?.trim() && k.name?.trim() && k.gameCount > 0)
+    .filter((k, index, arr) =>
+      arr.findIndex((x) => x.code === k.code) === index
+    )
+    .sort((a, b) => b.gameCount - a.gameCount);
 
   const onKeywordClick = (keywordCode: string) => {
     filters.value = {
@@ -78,6 +80,78 @@ export default function GameSearchExplorer(props: Props) {
     };
     syncFiltersToUrl(filters.value);
     void applySearch(1, false);
+  };
+
+  const renderKeywordWave = () => {
+    if (keywordWaveItems.length === 0) return null;
+
+    const allKeywords = [...keywordWaveItems];
+    const shuffled = [...allKeywords];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const firstTrack = [...shuffled, ...shuffled];
+    const secondTrack = [...shuffled, ...shuffled];
+    const motionScale = Math.max(1, shuffled.length / 18);
+    const firstDuration = Math.round(46 * motionScale);
+    const secondDuration = Math.round(54 * motionScale);
+
+    return (
+      <section class="rounded-3xl public-glass p-5 sm:p-6">
+        <div class="mb-4 flex items-end justify-between gap-3 border-b border-sky-200/30 pb-3">
+          <div>
+            <h2 class="mt-1 text-xl font-black text-white sm:text-2xl">
+              KEYWORD WAVE
+            </h2>
+            <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+              注目キーワード
+            </p>
+          </div>
+        </div>
+
+        <div class="keyword-marquee">
+          <div
+            class="keyword-marquee-track"
+            style={`animation-duration: ${firstDuration}s;`}
+          >
+            {firstTrack.map((k) => (
+              <button
+                type="button"
+                key={`${k.code}-a`}
+                onClick={() => onKeywordClick(k.code)}
+                class={filters.value.keywordCode === k.code
+                  ? "public-chip rounded-full px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-300"
+                  : "public-chip rounded-full px-3 py-1.5 text-xs font-semibold hover:border-emerald-300 hover:text-emerald-700"}
+              >
+                {k.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="keyword-marquee mt-3">
+          <div
+            class="keyword-marquee-track reverse"
+            style={`animation-duration: ${secondDuration}s;`}
+          >
+            {secondTrack.map((k) => (
+              <button
+                type="button"
+                key={`${k.code}-b`}
+                onClick={() => onKeywordClick(k.code)}
+                class={filters.value.keywordCode === k.code
+                  ? "public-chip rounded-full px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-300"
+                  : "public-chip rounded-full px-3 py-1.5 text-xs font-semibold hover:border-emerald-300 hover:text-emerald-700"}
+              >
+                {k.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   };
 
   const applySearch = async (nextPage: number, append: boolean) => {
@@ -127,87 +201,121 @@ export default function GameSearchExplorer(props: Props) {
 
   return (
     <div class="space-y-6">
-      <section class="rounded-3xl public-glass p-4 sm:p-6">
-        <form onSubmit={onSubmit} class="grid gap-3 lg:grid-cols-6">
-          <input
-            type="text"
-            value={filters.value.q}
-            onInput={(e) => {
-              filters.value = {
-                ...filters.value,
-                q: (e.target as HTMLInputElement).value,
-              };
-            }}
-            placeholder="タイトル・カナで検索"
-            class="lg:col-span-2 rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-800"
-          />
+      <section class="rounded-3xl public-glass p-4 sm:p-5">
+        <form onSubmit={onSubmit} class="space-y-4">
+          <div class="grid gap-3">
+            <div class="w-full md:w-1/2">
+              <label class="block">
+                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                  FREEWORD
+                </span>
+                <input
+                  type="text"
+                  value={filters.value.q}
+                  onInput={(e) => {
+                    filters.value = {
+                      ...filters.value,
+                      q: (e.target as HTMLInputElement).value,
+                    };
+                  }}
+                  placeholder="タイトル・カナで検索"
+                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-inner shadow-sky-100 placeholder:text-slate-400"
+                />
+              </label>
+            </div>
 
-          <select
-            value={filters.value.machineCode}
-            onChange={(e) => {
-              filters.value = {
-                ...filters.value,
-                machineCode: (e.target as HTMLSelectElement).value,
-              };
-            }}
-            class="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-800"
-          >
-            <option value="">機種</option>
-            {props.machines.map((m) => <option value={m.code}>{m.name}
-            </option>)}
-          </select>
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <label class="block">
+                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                  MACHINE
+                </span>
+                <select
+                  value={filters.value.machineCode}
+                  onChange={(e) => {
+                    filters.value = {
+                      ...filters.value,
+                      machineCode: (e.target as HTMLSelectElement).value,
+                    };
+                  }}
+                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+                >
+                  <option value="">機種</option>
+                  {props.machines.map((m) => (
+                    <option value={m.code}>{m.name}</option>
+                  ))}
+                </select>
+              </label>
 
-          <select
-            value={filters.value.genreCode}
-            onChange={(e) => {
-              filters.value = {
-                ...filters.value,
-                genreCode: (e.target as HTMLSelectElement).value,
-              };
-            }}
-            class="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-800"
-          >
-            <option value="">ジャンル</option>
-            {props.genres.map((g) => <option value={g.code}>{g.name}</option>)}
-          </select>
+              <label class="block">
+                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                  GENRE
+                </span>
+                <select
+                  value={filters.value.genreCode}
+                  onChange={(e) => {
+                    filters.value = {
+                      ...filters.value,
+                      genreCode: (e.target as HTMLSelectElement).value,
+                    };
+                  }}
+                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+                >
+                  <option value="">ジャンル</option>
+                  {props.genres.map((g) => (
+                    <option value={g.code}>{g.name}</option>
+                  ))}
+                </select>
+              </label>
 
-          <select
-            value={filters.value.manufacturerCode}
-            onChange={(e) => {
-              filters.value = {
-                ...filters.value,
-                manufacturerCode: (e.target as HTMLSelectElement).value,
-              };
-            }}
-            class="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-800"
-          >
-            <option value="">メーカー</option>
-            {props.manufacturers.map((m) => (
-              <option value={m.code}>{m.name}</option>
-            ))}
-          </select>
+              <label class="block">
+                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                  MANUFACTURER
+                </span>
+                <select
+                  value={filters.value.manufacturerCode}
+                  onChange={(e) => {
+                    filters.value = {
+                      ...filters.value,
+                      manufacturerCode: (e.target as HTMLSelectElement).value,
+                    };
+                  }}
+                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+                >
+                  <option value="">メーカー</option>
+                  {props.manufacturers.map((m) => (
+                    <option value={m.code}>{m.name}</option>
+                  ))}
+                </select>
+              </label>
 
-          <select
-            value={filters.value.keywordCode}
-            onChange={(e) => {
-              filters.value = {
-                ...filters.value,
-                keywordCode: (e.target as HTMLSelectElement).value,
-              };
-            }}
-            class="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-800"
-          >
-            <option value="">キーワード</option>
-            {props.keywords.filter((k) => k.gameCount > 0).map((k) => (
-              <option value={k.code}>{k.name} ({k.gameCount})</option>
-            ))}
-          </select>
+              <label class="block">
+                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                  KEYWORD
+                </span>
+                <select
+                  value={filters.value.keywordCode}
+                  onChange={(e) => {
+                    filters.value = {
+                      ...filters.value,
+                      keywordCode: (e.target as HTMLSelectElement).value,
+                    };
+                  }}
+                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+                >
+                  <option value="">キーワード</option>
+                  {props.keywords.filter((k) => k.gameCount > 0).map((k) => (
+                    <option value={k.code}>{k.name} ({k.gameCount})</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
 
-          <div class="lg:col-span-6 flex flex-wrap gap-2">
+          <div class="flex justify-end gap-2 border-t border-sky-200/25 pt-3">
             <button
               type="submit"
               disabled={loading.value}
-              class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
+              class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
             >
               検索する
             </button>
@@ -224,31 +332,12 @@ export default function GameSearchExplorer(props: Props) {
                 syncFiltersToUrl(filters.value);
                 void applySearch(1, false);
               }}
-              class="rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-sky-50"
+              class="rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50"
             >
               条件をクリア
             </button>
           </div>
         </form>
-
-        <div class="mt-4">
-          <p class="mb-2 text-xs font-semibold tracking-[0.14em] text-slate-500">
-            POPULAR KEYWORDS
-          </p>
-          <div class="flex flex-wrap gap-2">
-            {topKeywords.map((k) => (
-              <button
-                type="button"
-                onClick={() => onKeywordClick(k.code)}
-                class={filters.value.keywordCode === k.code
-                  ? "rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700"
-                  : "rounded-full border border-sky-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 hover:border-emerald-300 hover:text-emerald-700"}
-              >
-                {k.name}
-              </button>
-            ))}
-          </div>
-        </div>
       </section>
 
       <div class="flex items-center justify-between rounded-2xl border border-cyan-300/20 bg-black/20 px-4 py-3 text-cyan-50">
@@ -385,6 +474,8 @@ export default function GameSearchExplorer(props: Props) {
           条件に一致するゲームが見つかりませんでした。
         </div>
       )}
+
+      {!loading.value && !error.value && renderKeywordWave()}
 
       {hasMore && (
         <div class="flex justify-center pt-2">

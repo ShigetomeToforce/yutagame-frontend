@@ -38,6 +38,11 @@ export interface KpiBucket {
   uniqueVisitors: number;
   apiCalls: number;
   searchCount: number;
+  contactCount: number;
+  genreSearches: number;
+  machineSearches: number;
+  makerSearches: number;
+  keywordSearches: number;
   affiliateClicks: number;
   errorCount: number;
   topMachines: TopItem[];
@@ -54,6 +59,163 @@ export interface AccessDashboard {
 
 export async function fetchAccessDashboard(): Promise<AccessDashboard> {
   return await adminFetch<AccessDashboard>("/admin/access-logs/dashboard");
+}
+
+export interface AccessMonthlyRow {
+  date: string;
+  pageViews: number;
+  uniqueVisitors: number;
+  searchCount: number;
+  machineSearches: number;
+  makerSearches: number;
+  genreSearches: number;
+  keywordSearches: number;
+  contactCount: number;
+}
+
+export interface AccessMonthlyTable {
+  month: string;
+  prevMonth: string;
+  nextMonth: string;
+  rows: AccessMonthlyRow[];
+  monthlySum: AccessMonthlyRow;
+}
+
+export async function fetchAccessMonthlyTable(
+  month?: string,
+): Promise<AccessMonthlyTable> {
+  const query = new URLSearchParams();
+  if (month) {
+    query.set("month", month);
+  }
+  const suffix = query.toString();
+  return await adminFetch<AccessMonthlyTable>(
+    `/admin/access-logs/monthly-table${suffix ? `?${suffix}` : ""}`,
+  );
+}
+
+export type SearchBreakdownField =
+  | "machineCode"
+  | "manufacturerCode"
+  | "genreCode"
+  | "keywordCode"
+  | "searchWord";
+
+export interface AccessSearchBreakdown {
+  field: SearchBreakdownField;
+  date: string;
+  daily: TopItem[];
+  total: TopItem[];
+}
+
+export type MachineSearchPeriod = "daily" | "monthly" | "total";
+
+export interface MachineSearchDashboard {
+  period: MachineSearchPeriod;
+  target: string;
+  items: TopItem[];
+}
+
+export async function fetchMachineSearchDashboard(input: {
+  period: MachineSearchPeriod;
+  date?: string;
+  month?: string;
+  limit?: number;
+}): Promise<MachineSearchDashboard> {
+  const query = new URLSearchParams({ period: input.period });
+  if (input.date) {
+    query.set("date", input.date);
+  }
+  if (input.month) {
+    query.set("month", input.month);
+  }
+  if (input.limit && input.limit > 0) {
+    query.set("limit", String(input.limit));
+  }
+
+  return await adminFetch<MachineSearchDashboard>(
+    `/admin/access-logs/machine-searches?${query.toString()}`,
+  );
+}
+
+export type RankingField =
+  | "machineCode"
+  | "manufacturerCode"
+  | "genreCode"
+  | "keywordCode"
+  | "searchWord";
+
+export interface RankingDashboard {
+  period: MachineSearchPeriod;
+  target: string;
+  items: TopItem[];
+}
+
+export async function fetchSearchRankingDashboard(input: {
+  field: RankingField;
+  period: MachineSearchPeriod;
+  date?: string;
+  month?: string;
+  limit?: number;
+}): Promise<RankingDashboard> {
+  const query = new URLSearchParams({
+    field: input.field,
+    period: input.period,
+  });
+
+  if (input.date) {
+    query.set("date", input.date);
+  }
+  if (input.month) {
+    query.set("month", input.month);
+  }
+  if (input.limit && input.limit > 0) {
+    query.set("limit", String(input.limit));
+  }
+
+  return await adminFetch<RankingDashboard>(
+    `/admin/access-logs/search-rankings?${query.toString()}`,
+  );
+}
+
+export async function fetchGameViewDashboard(input: {
+  period: MachineSearchPeriod;
+  date?: string;
+  month?: string;
+  limit?: number;
+}): Promise<RankingDashboard> {
+  const query = new URLSearchParams({ period: input.period });
+  if (input.date) {
+    query.set("date", input.date);
+  }
+  if (input.month) {
+    query.set("month", input.month);
+  }
+  if (input.limit && input.limit > 0) {
+    query.set("limit", String(input.limit));
+  }
+
+  return await adminFetch<RankingDashboard>(
+    `/admin/access-logs/game-views?${query.toString()}`,
+  );
+}
+
+export async function fetchAccessSearchBreakdown(input: {
+  field: SearchBreakdownField;
+  date?: string;
+  limit?: number;
+}): Promise<AccessSearchBreakdown> {
+  const query = new URLSearchParams({ field: input.field });
+  if (input.date) {
+    query.set("date", input.date);
+  }
+  if (input.limit && input.limit > 0) {
+    query.set("limit", String(input.limit));
+  }
+
+  return await adminFetch<AccessSearchBreakdown>(
+    `/admin/access-logs/search-breakdown?${query.toString()}`,
+  );
 }
 
 export interface FetchFileLogParams {

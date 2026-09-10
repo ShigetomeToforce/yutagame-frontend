@@ -230,15 +230,12 @@ function SpotlightDetailCard(
           <a href={`/app/games/${game.code}`} class="block">
             <h3
               class={compact
-                ? "text-lg font-black text-white sm:text-xl"
-                : "text-xl font-black text-white sm:text-2xl"}
+                ? "line-clamp-1 text-lg font-black text-white sm:text-xl"
+                : "line-clamp-1 text-xl font-black text-white sm:text-2xl"}
             >
               {game.name}
             </h3>
           </a>
-          <p class="text-[10px] font-semibold tracking-[0.12em] text-cyan-100/75">
-            画像またはタイトルから詳細へ
-          </p>
 
           {(catchCopy || subCatch) && (
             <div class="space-y-1 rounded-xl border border-cyan-300/20 bg-black/15 px-3 py-2">
@@ -270,7 +267,9 @@ function SpotlightDetailCard(
           >
             <p class="spotlight-row">
               <span>メーカー</span>
-              <strong>{game.manufacturer?.name || "-"}</strong>
+              <strong class="max-w-[62%] overflow-hidden text-ellipsis whitespace-nowrap text-right">
+                {game.manufacturer?.name || "-"}
+              </strong>
             </p>
             <p class="spotlight-row">
               <span>機種</span>
@@ -481,7 +480,7 @@ function _SpotlightCard({ game }: { game: GameItem }) {
             PICK 1
           </p>
           <a href={`/app/games/${game.code}`} class="block">
-            <h3 class="text-xl font-black text-white sm:text-2xl">
+            <h3 class="line-clamp-1 text-xl font-black text-white sm:text-2xl">
               {game.name}
             </h3>
           </a>
@@ -504,7 +503,9 @@ function _SpotlightCard({ game }: { game: GameItem }) {
           <div class="grid gap-1.5 text-[12px] text-slate-100 sm:grid-cols-2">
             <p class="spotlight-row">
               <span>メーカー</span>
-              <strong>{game.manufacturer?.name || "-"}</strong>
+              <strong class="max-w-[62%] overflow-hidden text-ellipsis whitespace-nowrap text-right">
+                {game.manufacturer?.name || "-"}
+              </strong>
             </p>
             <p class="spotlight-row">
               <span>機種</span>

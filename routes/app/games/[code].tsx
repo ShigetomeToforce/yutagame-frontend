@@ -4,6 +4,7 @@ import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
 import GameFavoriteButton from "../../../islands/app/GameFavoriteButton.tsx";
 import { appFetch, AppHttpError, GameItem } from "../../../utils/appApi.ts";
 import { buildImageUrl } from "../../../utils/image.ts";
+import { getCookieValue } from "../../../utils/publicEvent.ts";
 
 interface PageData {
   game?: GameItem;
@@ -66,7 +67,18 @@ export const handler: Handlers<PageData> = {
       : "/app/games";
 
     try {
-      const game = await appFetch<GameItem>(`/app/games/${ctx.params.code}`);
+      const query = new URLSearchParams();
+      const visitorId = getCookieValue(
+        req.headers.get("cookie") || "",
+        "visitor_id",
+      );
+      if (visitorId) {
+        query.set("visitorId", visitorId);
+      }
+      const querySuffix = query.toString() ? `?${query.toString()}` : "";
+      const game = await appFetch<GameItem>(
+        `/app/games/${ctx.params.code}${querySuffix}`,
+      );
       return ctx.render({ game, returnTo });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 404) {

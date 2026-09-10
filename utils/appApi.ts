@@ -129,6 +129,18 @@ export interface SearchQuery {
   keywordCode?: string;
   page?: number;
   limit?: number;
+  visitorId?: string;
+}
+
+function getVisitorIdFromCookie(): string {
+  if (isServer || typeof document === "undefined") return "";
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const [name, ...rest] = cookie.trim().split("=");
+    if (name !== "visitor_id") continue;
+    return decodeURIComponent(rest.join("="));
+  }
+  return "";
 }
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -219,6 +231,7 @@ function buildQueryString(params: SearchQuery): string {
   if (params.keywordCode) query.set("keywordCode", params.keywordCode);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
+  if (params.visitorId) query.set("visitorId", params.visitorId);
 
   const qs = query.toString();
   return qs ? `?${qs}` : "";
@@ -227,8 +240,9 @@ function buildQueryString(params: SearchQuery): string {
 export async function searchGames(
   params: SearchQuery,
 ): Promise<SearchResponse> {
+  const visitorId = params.visitorId || getVisitorIdFromCookie();
   return await appFetch<SearchResponse>(
-    `/app/games${buildQueryString(params)}`,
+    `/app/games${buildQueryString({ ...params, visitorId })}`,
   );
 }
 

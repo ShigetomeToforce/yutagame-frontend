@@ -1,6 +1,6 @@
 import { FreshContext } from "$fresh/server.ts";
 import { getMaintenanceStatus } from "../utils/maintenance.ts";
-import { getCookieValue, postPublicEvent } from "../utils/publicEvent.ts";
+import { getCookieValue } from "../utils/publicEvent.ts";
 import { logServerEvent } from "../utils/serverLog.ts";
 
 const BYPASS_PREFIXES = [
@@ -150,15 +150,6 @@ export async function handler(req: Request, ctx: FreshContext) {
   try {
     const status = await getMaintenanceStatus();
     if (status.enabled) {
-      void postPublicEvent({
-        eventType: "page_view",
-        eventSource: "frontend_ssr",
-        path: pathnameWithQuery,
-        method: req.method,
-        statusCode: 307,
-        visitorId,
-        referrer: req.headers.get("referer") || "",
-      });
       writeRequestLogs(req, pathnameWithQuery, 307);
 
       const location = `/maintenance?from=${
@@ -192,16 +183,6 @@ export async function handler(req: Request, ctx: FreshContext) {
   }
 
   writeRequestLogs(req, pathnameWithQuery, res.status);
-
-  void postPublicEvent({
-    eventType: "page_view",
-    eventSource: "frontend_ssr",
-    path: pathnameWithQuery,
-    method: req.method,
-    statusCode: res.status,
-    visitorId,
-    referrer: req.headers.get("referer") || "",
-  });
 
   if (shouldSetCookie) {
     res.headers.append(

@@ -1,63 +1,52 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+import AnalyticsNav from "./AnalyticsNav.tsx";
 import {
-  type AccessDashboard,
-  fetchAccessDashboard,
-  type TopItem,
+  type AccessMonthlyRow,
+  type AccessMonthlyTable,
+  fetchAccessMonthlyTable,
 } from "../../../utils/adminAccessLog.ts";
 
-function TopList({ title, items }: { title: string; items: TopItem[] }) {
-  return (
-    <section class="rounded-lg border border-gray-200 bg-white p-4">
-      <h3 class="text-sm font-semibold text-gray-700">{title}</h3>
-      {items.length === 0
-        ? <p class="mt-2 text-xs text-gray-500">データなし</p>
-        : (
-          <ul class="mt-2 space-y-1 text-sm">
-            {items.map((item) => (
-              <li class="flex items-center justify-between gap-3">
-                <span class="truncate text-gray-700">{item.value}</span>
-                <span class="font-semibold text-gray-900">{item.count}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-    </section>
-  );
+function formatMonthLabel(month: string): string {
+  const [year, monthPart] = month.split("-");
+  if (!year || !monthPart) {
+    return month;
+  }
+  return `${year}年${Number(monthPart)}月`;
 }
 
-function KpiCard(
-  { label, value }: { label: string; value: number },
-) {
+function ValueCell({ value }: { value: number }) {
   return (
-    <div class="rounded-lg border border-gray-200 bg-white p-4">
-      <p class="text-xs font-semibold tracking-wide text-gray-500">{label}</p>
-      <p class="mt-1 text-2xl font-bold text-gray-900">
-        {value.toLocaleString()}
-      </p>
-    </div>
+    <td class="whitespace-nowrap px-3 py-2 text-right text-sm text-gray-800">
+      {value.toLocaleString()}
+    </td>
   );
 }
 
 export default function AccessDashboard() {
   const loading = useSignal(true);
   const error = useSignal("");
-  const dashboard = useSignal<AccessDashboard | null>(null);
+  const table = useSignal<AccessMonthlyTable | null>(null);
+  const currentMonth = useSignal("");
+
+  const load = async (month?: string) => {
+    loading.value = true;
+    error.value = "";
+    try {
+      const response = await fetchAccessMonthlyTable(month);
+      table.value = response;
+      currentMonth.value = response.month;
+    } catch (err) {
+      error.value = err instanceof Error
+        ? err.message
+        : "ダッシュボードの取得に失敗しました。";
+    } finally {
+      loading.value = false;
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      loading.value = true;
-      error.value = "";
-      try {
-        dashboard.value = await fetchAccessDashboard();
-      } catch (err) {
-        error.value = err instanceof Error
-          ? err.message
-          : "ダッシュボードの取得に失敗しました。";
-      } finally {
-        loading.value = false;
-      }
-    })();
+    void load();
   }, []);
 
   if (loading.value) {
@@ -76,7 +65,7 @@ export default function AccessDashboard() {
     );
   }
 
-  if (!dashboard.value) {
+  if (!table.value) {
     return (
       <div class="rounded-lg border border-gray-200 bg-white p-4 text-gray-600">
         データがありません。
@@ -84,52 +73,92 @@ export default function AccessDashboard() {
     );
   }
 
-  const daily = dashboard.value.daily;
-  const monthly = dashboard.value.monthly;
+  const monthlyRows: AccessMonthlyRow[] = table.value.rows;
+  const monthlySum = table.value.monthlySum;
 
   return (
-    <div class="space-y-6">
-      <section class="space-y-3">
-        <div>
-          <h2 class="text-lg font-bold text-gray-900">
-            日次KPI ({daily.from})
-          </h2>
-        </div>
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          <KpiCard label="PV" value={daily.pageViews} />
-          <KpiCard label="UU" value={daily.uniqueVisitors} />
-          <KpiCard label="API" value={daily.apiCalls} />
-          <KpiCard label="検索" value={daily.searchCount} />
-          <KpiCard label="外部誘導" value={daily.affiliateClicks} />
-          <KpiCard label="エラー" value={daily.errorCount} />
-        </div>
-      </section>
+    <div class="space-y-4">
+      <AnalyticsNav current="access" />
 
-      <section class="space-y-3">
-        <div>
+      <section class="rounded-lg border border-gray-200 bg-white p-4">
+        <div class="mb-3 flex items-center justify-between gap-2">
           <h2 class="text-lg font-bold text-gray-900">
-            月次KPI ({monthly.from} - {monthly.to})
+            アクセス分析 {formatMonthLabel(currentMonth.value)}
           </h2>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void load(table.value?.prevMonth)}
+              class="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              前月
+            </button>
+            <button
+              type="button"
+              onClick={() => void load(table.value?.nextMonth)}
+              class="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              次月
+            </button>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          <KpiCard label="PV" value={monthly.pageViews} />
-          <KpiCard label="UU" value={monthly.uniqueVisitors} />
-          <KpiCard label="API" value={monthly.apiCalls} />
-          <KpiCard label="検索" value={monthly.searchCount} />
-          <KpiCard label="外部誘導" value={monthly.affiliateClicks} />
-          <KpiCard label="エラー" value={monthly.errorCount} />
+        <div class="overflow-x-auto">
+          <table class="min-w-full border-collapse">
+            <thead>
+              <tr class="border-y border-gray-200 bg-gray-50 text-xs font-semibold text-gray-600">
+                <th class="whitespace-nowrap px-3 py-2 text-left">日付</th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">PV</th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">UU</th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">検索数</th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">
+                  機種検索数
+                </th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">
+                  メーカー検索数
+                </th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">
+                  ジャンル検索数
+                </th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">
+                  キーワード検索数
+                </th>
+                <th class="whitespace-nowrap px-3 py-2 text-right">
+                  お問合せ数
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyRows.map((row) => (
+                <tr class="border-b border-gray-100" key={row.date}>
+                  <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-700">
+                    {row.date}
+                  </td>
+                  <ValueCell value={row.pageViews} />
+                  <ValueCell value={row.uniqueVisitors} />
+                  <ValueCell value={row.searchCount} />
+                  <ValueCell value={row.machineSearches} />
+                  <ValueCell value={row.makerSearches} />
+                  <ValueCell value={row.genreSearches} />
+                  <ValueCell value={row.keywordSearches} />
+                  <ValueCell value={row.contactCount} />
+                </tr>
+              ))}
+              <tr class="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-900">
+                  {monthlySum.date}
+                </td>
+                <ValueCell value={monthlySum.pageViews} />
+                <ValueCell value={monthlySum.uniqueVisitors} />
+                <ValueCell value={monthlySum.searchCount} />
+                <ValueCell value={monthlySum.machineSearches} />
+                <ValueCell value={monthlySum.makerSearches} />
+                <ValueCell value={monthlySum.genreSearches} />
+                <ValueCell value={monthlySum.keywordSearches} />
+                <ValueCell value={monthlySum.contactCount} />
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </section>
-
-      <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <TopList title="機種 指定数 Top5" items={monthly.topMachines} />
-        <TopList
-          title="メーカー 指定数 Top5"
-          items={monthly.topManufacturers}
-        />
-        <TopList title="ジャンル 指定数 Top5" items={monthly.topGenres} />
-        <TopList title="キーワード 指定数 Top5" items={monthly.topKeywords} />
-        <TopList title="検索ワード Top5" items={monthly.topSearchWords} />
       </section>
     </div>
   );
