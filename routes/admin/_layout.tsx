@@ -33,6 +33,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🎮 ゲーム管理";
   } else if (cleanPath.startsWith("/admin/rankings")) {
     pageTitle = "🏆 ランキング管理";
+  } else if (cleanPath.startsWith("/admin/features")) {
+    pageTitle = "🎯 特集管理";
   } else if (cleanPath.startsWith("/admin/machines")) {
     pageTitle = "🖥️ 機種管理";
   } else if (cleanPath.startsWith("/admin/genres")) {
@@ -47,6 +49,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "📰 お知らせ管理";
   } else if (cleanPath.startsWith("/admin/contacts")) {
     pageTitle = "✉️ 問い合わせ管理";
+  } else if (cleanPath.startsWith("/admin/recommendations")) {
+    pageTitle = "⭐ おすすめゲーム管理";
   } else if (cleanPath.startsWith("/admin/admins")) {
     pageTitle = "👤 Adminユーザー管理";
   } else if (cleanPath.startsWith("/admin/users")) {
@@ -102,6 +106,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       active: cleanPath.startsWith("/admin/rankings"),
     },
     {
+      label: "🎯 特集管理",
+      href: "/admin/features",
+      active: cleanPath.startsWith("/admin/features"),
+    },
+    {
       label: "📰 お知らせ管理",
       href: "/admin/announcements",
       active: cleanPath.startsWith("/admin/announcements"),
@@ -110,6 +119,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "✉️ 問い合わせ管理",
       href: "/admin/contacts",
       active: cleanPath.startsWith("/admin/contacts"),
+    },
+    {
+      label: "⭐ おすすめゲーム管理",
+      href: "/admin/recommendations",
+      active: cleanPath.startsWith("/admin/recommendations"),
     },
   ];
 

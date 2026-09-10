@@ -7,7 +7,10 @@ export default function App({ Component, url }: PageProps) {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="index,follow" />
+        <meta
+          name="robots"
+          content={isAdminRoute ? "noindex,nofollow,noarchive" : "index,follow"}
+        />
         <meta name="theme-color" content="#040a18" />
         <title>PACKAGE FROESST</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,14 +20,18 @@ export default function App({ Component, url }: PageProps) {
           crossorigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
         <link rel="stylesheet" href="/styles.css" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
       <body class="min-h-screen bg-slate-950 text-gray-900">
-        <div class="flex min-h-screen flex-col">
+        <div
+          class={`flex min-h-screen flex-col ${
+            isAdminRoute ? "" : "public-scope"
+          }`}
+        >
           <div class="flex flex-1 flex-col">
             <Component />
           </div>
@@ -45,6 +52,10 @@ export default function App({ Component, url }: PageProps) {
                   <a href="/faq" class="hover:text-white">FAQ</a>
                   <a href="/announcements" class="hover:text-white">お知らせ</a>
                   <a href="/contact" class="hover:text-white">お問い合わせ</a>
+                  <a href="/recommendations" class="hover:text-white">
+                    おすすめゲーム
+                  </a>
+                  <a href="/advertising" class="hover:text-white">広告掲載</a>
                   <a href="/privacy" class="hover:text-white">プライバシー</a>
                   <a href="/terms" class="hover:text-white">利用規約</a>
                   <a href="/commercial" class="hover:text-white">特商法表記</a>

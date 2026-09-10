@@ -1,5 +1,4 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
-import { Head } from "$fresh/runtime.ts";
 import GameSearchExplorer from "../../../islands/app/GameSearchExplorer.tsx";
 import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
 import PublicHeader from "../../_public_header.tsx";
@@ -13,6 +12,7 @@ import {
   SearchResponse,
 } from "../../../utils/appApi.ts";
 import { getCookieValue } from "../../../utils/publicEvent.ts";
+import { canonicalUrl, JsonLd, SeoHead } from "../../../utils/seo.tsx";
 
 interface SearchFilters {
   q: string;
@@ -82,8 +82,8 @@ export const handler: Handlers<PageData> = {
           appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
           appFetch<KeywordItem[]>("/app/keywords"),
           appFetch<SearchResponse>(`/app/games?${query.toString()}`),
-          fetchPublicBanners("search_above"),
-          fetchPublicBanners("search_below"),
+          fetchPublicBanners("search_above", visitorId),
+          fetchPublicBanners("search_below", visitorId),
         ]);
 
       return ctx.render({
@@ -134,13 +134,22 @@ export default function SearchPage({ data }: PageProps<PageData>) {
 
   return (
     <div class="public-bg flex h-full flex-col">
-      <Head>
-        <title>ゲーム検索 - PACKAGE FROESST</title>
-        <meta
-          name="description"
-          content="メーカー、機種、ジャンル、キーワードでゲームを検索できます。"
-        />
-      </Head>
+      <SeoHead
+        title="ゲーム検索"
+        description="メーカー、機種、ジャンル、キーワードから名作ゲームや神ゲーを探せるゲーム検索ページです。"
+        path="/app/games"
+        keywords={["ゲームギア 名作", "機種別 名作ゲーム", "メーカー別 神ゲー"]}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "ゲーム検索",
+          url: canonicalUrl("/app/games"),
+          description:
+            "メーカー、機種、ジャンル、キーワードから名作ゲームや神ゲーを探せるゲーム検索ページです。",
+        }}
+      />
       <PublicHeader />
 
       <main class="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-8 sm:py-8 lg:px-12">

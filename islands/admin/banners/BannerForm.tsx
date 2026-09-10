@@ -123,142 +123,156 @@ export default function BannerForm({ id }: { id?: number }) {
   };
   if (loading.value) return <p class="text-sm text-slate-500">読み込み中...</p>;
   return (
-    <form
-      onSubmit={submit}
-      class="space-y-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-    >
-      <div class="flex items-center justify-between">
-        <a
-          href="/admin/banners"
-          class="text-sm font-semibold text-slate-600 hover:text-slate-900"
-        >
-          一覧へ戻る
-        </a>
-        {id && (
-          <span class="text-sm text-slate-500">
-            クリック数: {form.value.clickCount}
-          </span>
-        )}
-      </div>
-      <div class="grid gap-4">
-        <label class="text-sm font-semibold text-slate-700">
-          タイトル<input
-            required
-            value={form.value.title}
-            onInput={(e) => set("title", (e.target as HTMLInputElement).value)}
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-          />
-        </label>
-        <label class="text-sm font-semibold text-slate-700">
-          設置箇所<select
-            value={form.value.placement}
-            onChange={(e) =>
-              set("placement", (e.target as HTMLSelectElement).value)}
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-          >
-            {placementOptions.map(([value, label]) => (
-              <option value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-        <label class="text-sm font-semibold text-slate-700">
-          リンク先URL<input
-            type="url"
-            value={form.value.linkUrl}
-            onInput={(e) =>
-              set("linkUrl", (e.target as HTMLInputElement).value)}
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-          />
-        </label>
-        <label class="flex items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={form.value.openInNewTab}
-            onChange={(e) =>
-              set("openInNewTab", (e.target as HTMLInputElement).checked)}
-          />別タブで開く
-        </label>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="text-sm font-semibold text-slate-700">
-            公開開始<input
-              type="datetime-local"
-              value={form.value.startsAt}
-              onInput={(e) =>
-                set("startsAt", (e.target as HTMLInputElement).value)}
-              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-            />
-          </label>
-          <label class="text-sm font-semibold text-slate-700">
-            公開終了<input
-              type="datetime-local"
-              value={form.value.endsAt}
-              onInput={(e) =>
-                set("endsAt", (e.target as HTMLInputElement).value)}
-              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
-            />
-          </label>
-        </div>
-        <label class="text-sm font-semibold text-slate-700">
-          バナー画像<input
-            required={!id}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={selectImage}
-            class="mt-1 block w-full text-sm font-normal"
-          />
-        </label>
-        {(form.value.imageKey || selectedImageUrl.value) && (
-          <div class="grid gap-4 sm:grid-cols-2">
-            {form.value.imageKey && (
-              <section>
-                <p class="mb-2 text-sm font-semibold text-slate-700">
-                  現在のバナー
-                </p>
-                <img
-                  src={buildImageUrl(form.value.imageKey, "banners")}
-                  alt="現在のバナー"
-                  class="max-h-64 w-full rounded-lg object-contain ring-1 ring-slate-200"
-                />
-              </section>
-            )}
-            {selectedImageUrl.value && (
-              <section>
-                <p class="mb-2 text-sm font-semibold text-slate-700">
-                  アップロード予定の画像
-                </p>
-                <img
-                  src={selectedImageUrl.value}
-                  alt="アップロード予定のバナー"
-                  class="max-h-64 w-full rounded-lg object-contain ring-2 ring-emerald-400"
-                />
-              </section>
+    <div class="mx-auto max-w-5xl">
+      <div class="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div class="flex min-w-0 items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-900 sm:text-2xl">
+              バナー管理
+            </h1>
+            {id && (
+              <span class="text-sm text-slate-500">
+                クリック数: {form.value.clickCount}
+              </span>
             )}
           </div>
-        )}
+          <div class="flex shrink-0 items-center gap-3">
+            <a
+              href="/admin/banners"
+              class="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              一覧へ戻る
+            </a>
+            <button
+              type="submit"
+              form="banner-form"
+              disabled={submitting.value}
+              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {submitting.value ? "保存中..." : "保存する"}
+            </button>
+          </div>
+        </div>
       </div>
-      {error.value && (
-        <p class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error.value}
-        </p>
-      )}
-      <div class="flex flex-wrap justify-between gap-3">
-        <button
-          type="submit"
-          disabled={submitting.value}
-          class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
-        >
-          {submitting.value ? "保存中..." : "保存する"}
-        </button>
+      <form
+        id="banner-form"
+        onSubmit={submit}
+        class="space-y-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      >
+        <div class="grid gap-4">
+          <label class="text-sm font-semibold text-slate-700">
+            タイトル<input
+              required
+              value={form.value.title}
+              onInput={(e) =>
+                set("title", (e.target as HTMLInputElement).value)}
+              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
+            />
+          </label>
+          <label class="text-sm font-semibold text-slate-700">
+            設置箇所<select
+              value={form.value.placement}
+              onChange={(e) =>
+                set("placement", (e.target as HTMLSelectElement).value)}
+              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
+            >
+              {placementOptions.map(([value, label]) => (
+                <option value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          <label class="text-sm font-semibold text-slate-700">
+            リンク先URL<input
+              type="url"
+              value={form.value.linkUrl}
+              onInput={(e) =>
+                set("linkUrl", (e.target as HTMLInputElement).value)}
+              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
+            />
+          </label>
+          <label class="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.value.openInNewTab}
+              onChange={(e) =>
+                set("openInNewTab", (e.target as HTMLInputElement).checked)}
+            />別タブで開く
+          </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="text-sm font-semibold text-slate-700">
+              公開開始<input
+                type="datetime-local"
+                value={form.value.startsAt}
+                onInput={(e) =>
+                  set("startsAt", (e.target as HTMLInputElement).value)}
+                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
+              />
+            </label>
+            <label class="text-sm font-semibold text-slate-700">
+              公開終了<input
+                type="datetime-local"
+                value={form.value.endsAt}
+                onInput={(e) =>
+                  set("endsAt", (e.target as HTMLInputElement).value)}
+                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"
+              />
+            </label>
+          </div>
+          <label class="text-sm font-semibold text-slate-700">
+            バナー画像<input
+              required={!id}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={selectImage}
+              class="mt-1 block w-full text-sm font-normal"
+            />
+          </label>
+          {(form.value.imageKey || selectedImageUrl.value) && (
+            <div class="grid gap-4 sm:grid-cols-2">
+              {form.value.imageKey && (
+                <section>
+                  <p class="mb-2 text-sm font-semibold text-slate-700">
+                    現在のバナー
+                  </p>
+                  <img
+                    src={buildImageUrl(form.value.imageKey, "banners")}
+                    alt="現在のバナー"
+                    class="max-h-64 w-full rounded-lg object-contain ring-1 ring-slate-200"
+                  />
+                </section>
+              )}
+              {selectedImageUrl.value && (
+                <section>
+                  <p class="mb-2 text-sm font-semibold text-slate-700">
+                    アップロード予定の画像
+                  </p>
+                  <img
+                    src={selectedImageUrl.value}
+                    alt="アップロード予定のバナー"
+                    class="max-h-64 w-full rounded-lg object-contain ring-2 ring-emerald-400"
+                  />
+                </section>
+              )}
+            </div>
+          )}
+        </div>
+        {error.value && (
+          <p class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error.value}
+          </p>
+        )}
         {id && (
-          <button
-            type="button"
-            onClick={remove}
-            class="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
-          >
-            削除する
-          </button>
+          <div class="border-t border-slate-200 pt-6">
+            <button
+              type="button"
+              onClick={remove}
+              class="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+            >
+              削除する
+            </button>
+          </div>
         )}
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

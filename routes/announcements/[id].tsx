@@ -4,8 +4,10 @@ import {
   AppHttpError,
   fetchAnnouncementById,
 } from "../../utils/appApi.ts";
+import { getCookieValue } from "../../utils/publicEvent.ts";
 import BackendUnavailablePage from "../_backend_unavailable_page.tsx";
 import SitePage from "../_site_page.tsx";
+import { canonicalUrl } from "../../utils/seo.tsx";
 
 interface PageData {
   item?: AnnouncementItem;
@@ -21,7 +23,11 @@ export const handler: Handlers<PageData> = {
     }
 
     try {
-      const item = await fetchAnnouncementById(id);
+      const visitorId = getCookieValue(
+        req.headers.get("cookie") || "",
+        "visitor_id",
+      );
+      const item = await fetchAnnouncementById(id, visitorId);
       return ctx.render({ item });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 404) {
@@ -60,7 +66,22 @@ export default function AnnouncementDetailPage({ data }: PageProps<PageData>) {
 
   const { item } = data;
   return (
-    <SitePage title={item.title} description={item.excerpt}>
+    <SitePage
+      title={item.title}
+      description={item.excerpt}
+      showPageHeader={false}
+      canonicalPath={`/announcements/${item.id}`}
+      seoType="article"
+      structuredData={{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: item.title,
+        description: item.excerpt,
+        url: canonicalUrl(`/announcements/${item.id}`),
+        datePublished: item.publishedAt || item.createdAt,
+        dateModified: item.updatedAt,
+      }}
+    >
       <section class="rounded-2xl border border-cyan-300/20 bg-black/15 p-4 sm:p-5">
         <a
           href="/announcements"

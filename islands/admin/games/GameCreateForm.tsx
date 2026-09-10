@@ -487,23 +487,37 @@ export default function GameCreateForm() {
 
   return (
     <div class="mx-auto max-w-5xl">
-      <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">ゲーム新規登録</h1>
-            <p class="mt-1 text-sm text-gray-500">
-              ゲーム情報を入力して登録してください。
-            </p>
+      <div class="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div class="flex min-w-0 items-center gap-3">
+            <h1 class="truncate text-xl font-bold text-gray-900 sm:text-2xl">
+              ゲーム新規登録
+            </h1>
           </div>
-          <a
-            href="/admin/games"
-            class="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            一覧へ戻る
-          </a>
+          <div class="flex shrink-0 items-center gap-3">
+            <a
+              href="/admin/games"
+              class="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              一覧へ戻る
+            </a>
+            <button
+              type="submit"
+              form="game-create-form"
+              disabled={isSubmitting.value}
+              class="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+            >
+              {isSubmitting.value ? "登録中..." : "登録する"}
+            </button>
+          </div>
         </div>
-
-        <form onSubmit={handleSubmit} class="space-y-8 p-6">
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <form
+          id="game-create-form"
+          onSubmit={handleSubmit}
+          class="space-y-8 p-6"
+        >
           <div class="grid gap-6 md:grid-cols-2">
             <div class="space-y-2 md:col-span-1">
               <label class="block text-sm font-medium text-gray-700">
@@ -838,16 +852,6 @@ export default function GameCreateForm() {
               {submitError.value}
             </div>
           )}
-
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting.value}
-              class="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-            >
-              {isSubmitting.value ? "登録中..." : "登録する"}
-            </button>
-          </div>
         </form>
       </div>
     </div>

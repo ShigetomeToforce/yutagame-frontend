@@ -1,5 +1,4 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
-import { Head } from "$fresh/runtime.ts";
 import { buildImageUrl } from "../utils/image.ts";
 import GameFavoriteButton from "../islands/app/GameFavoriteButton.tsx";
 import PublicBannerSlider from "../islands/app/PublicBannerSlider.tsx";
@@ -17,6 +16,13 @@ import {
   KeywordItem,
   TopContents,
 } from "../utils/appApi.ts";
+import { getCookieValue } from "../utils/publicEvent.ts";
+import {
+  JsonLd,
+  organizationJsonLd,
+  SeoHead,
+  websiteJsonLd,
+} from "../utils/seo.tsx";
 
 interface PageData {
   machines: CatalogItem[];
@@ -33,6 +39,10 @@ interface PageData {
 
 export const handler: Handlers<PageData> = {
   async GET(req, ctx) {
+    const visitorId = getCookieValue(
+      req.headers.get("cookie") || "",
+      "visitor_id",
+    );
     try {
       const [
         machines,
@@ -52,8 +62,8 @@ export const handler: Handlers<PageData> = {
           "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
         ),
         fetchAnnouncements(),
-        fetchPublicBanners("top_above"),
-        fetchPublicBanners("top_below"),
+        fetchPublicBanners("top_above", visitorId),
+        fetchPublicBanners("top_below", visitorId),
       ]);
 
       return ctx.render({
@@ -445,7 +455,7 @@ function SectionHeader(
       </div>
       {href && showViewAll && (
         <a href={href} class="section-view-btn">
-          View ALL
+          View All
         </a>
       )}
     </div>
@@ -988,6 +998,7 @@ function NewsSection({ announcements }: { announcements: AnnouncementItem[] }) {
         title="Latest Announcements"
         subtitle="更新のお知らせ"
         href="/announcements"
+        showViewAll
       />
       <div class="mt-4 grid gap-3 md:grid-cols-3">
         {items.length === 0
@@ -1021,13 +1032,12 @@ export default function Home({ data }: PageProps<PageData>) {
   const spotlightGames = buildSpotlightGames(data.top);
   return (
     <div class="public-bg flex h-full flex-col">
-      <Head>
-        <title>PACKAGE FROESST</title>
-        <meta
-          name="description"
-          content="PACKAGE FROESSTは、ゲームの検索・閲覧・お知らせ・問い合わせをまとめたゲームアーカイブサイトです。"
-        />
-      </Head>
+      <SeoHead
+        description="PACKAGE FROESSTは、名作ゲーム・神ゲー・ランキング・機種別ゲームを探せるゲームアーカイブサイトです。"
+        path="/"
+      />
+      <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={organizationJsonLd()} />
       <section class="hero-stage relative min-h-[68vh] sm:min-h-[76vh]">
         <img
           src="/key-visual.png"

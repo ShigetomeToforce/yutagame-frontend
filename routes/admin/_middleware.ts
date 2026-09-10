@@ -1,5 +1,12 @@
 import { FreshContext } from "$fresh/server.ts";
 
+const ROBOTS_HEADER_VALUE = "noindex, nofollow, noarchive";
+
+function withNoIndexHeaders(response: Response): Response {
+  response.headers.set("X-Robots-Tag", ROBOTS_HEADER_VALUE);
+  return response;
+}
+
 // 💡 サーバー側でCookie（文字列）を扱いやすいように分解する便利関数
 function getCookies(headers: Headers) {
   const cookieHeader = headers.get("cookie") || "";
@@ -25,23 +32,27 @@ export async function handler(req: Request, ctx: FreshContext) {
   if (url.pathname === "/admin/login") {
     if (token) {
       // 💡 すでに通行証（Cookie）を持っていれば、ログイン画面を見せずに管理トップへリダイレクト！
-      return new Response("", {
-        status: 302,
-        headers: { Location: "/admin" },
-      });
+      return withNoIndexHeaders(
+        new Response("", {
+          status: 302,
+          headers: { Location: "/admin" },
+        }),
+      );
     }
     // 通行証を持っていなければ、予定通りログイン画面を表示する
-    return await ctx.next();
+    return withNoIndexHeaders(await ctx.next());
   }
 
   // 🛑 2. 通常の管理画面で、通行証（トークン）がCookieに無ければログイン画面へ即座にリダイレクト！
   if (!token) {
-    return new Response("", {
-      status: 302,
-      headers: { Location: "/admin/login" },
-    });
+    return withNoIndexHeaders(
+      new Response("", {
+        status: 302,
+        headers: { Location: "/admin/login" },
+      }),
+    );
   }
 
   // 🔑 3. 通行証があれば合格！本来表示したい画面の処理へ進める
-  return await ctx.next();
+  return withNoIndexHeaders(await ctx.next());
 }

@@ -6,6 +6,7 @@ export default function ContactPage() {
     <SitePage
       title="お問い合わせ"
       description="PACKAGE FROESSTへのお問い合わせページです。ニックネームでの送信も可能です。"
+      canonicalPath="/contact"
     >
       <div class="space-y-6">
         <p class="text-sm text-cyan-50/85">

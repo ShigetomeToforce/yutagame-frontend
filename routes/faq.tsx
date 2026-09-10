@@ -5,6 +5,7 @@ export default function FAQPage() {
     <SitePage
       title="FAQ"
       description="PACKAGE FROESSTの使い方、掲載基準、更新頻度、画像出典などをまとめたFAQです。"
+      canonicalPath="/faq"
     >
       <section class="space-y-2">
         <h2 class="text-lg font-bold text-white">

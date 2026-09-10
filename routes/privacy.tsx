@@ -5,6 +5,7 @@ export default function PrivacyPage() {
     <SitePage
       title="プライバシーポリシー"
       description="PACKAGE FROESSTにおける個人情報、問い合わせ、Cookie、計測、アフィリエイトの取り扱い方針です。"
+      canonicalPath="/privacy"
     >
       <section class="space-y-3">
         <p>

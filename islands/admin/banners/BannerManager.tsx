@@ -14,6 +14,7 @@ interface Banner {
   endsAt?: string;
   displayOrder: number;
   clickCount: number;
+  accessCount?: number;
 }
 
 const placements = [
@@ -157,7 +158,9 @@ export default function BannerManager() {
                             {banner.title}
                           </span>
                           <span class="text-xs text-slate-500">
-                            クリック数: {banner.clickCount}
+                            アクセス数:{" "}
+                            {(banner.accessCount ?? 0).toLocaleString()}{" "}
+                            / クリック数: {banner.clickCount.toLocaleString()}
                           </span>
                         </span>
                         <span class="text-slate-400">›</span>

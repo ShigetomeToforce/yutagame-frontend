@@ -5,6 +5,7 @@ export default function AboutPage() {
     <SitePage
       title="サイトについて"
       description="PACKAGE FROESSTの目的、探し方、掲載方針、リンク案内をまとめたページです。"
+      canonicalPath="/about"
     >
       <section class="space-y-3">
         <h2 class="text-lg font-bold text-white">このサイトについて</h2>

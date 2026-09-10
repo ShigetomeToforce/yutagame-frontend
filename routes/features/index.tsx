@@ -1,16 +1,16 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import {
-  type AnnouncementItem,
   AppHttpError,
-  fetchAnnouncements,
+  type FeatureItem,
+  fetchFeatures,
 } from "../../utils/appApi.ts";
-import AnnouncementList from "../../islands/app/AnnouncementList.tsx";
+import FeatureList from "../../islands/app/FeatureList.tsx";
 import BackendUnavailablePage from "../_backend_unavailable_page.tsx";
 import SitePage from "../_site_page.tsx";
 import { canonicalUrl } from "../../utils/seo.tsx";
 
 interface PageData {
-  items: AnnouncementItem[];
+  items: FeatureItem[];
   backendUnavailable?: boolean;
   retryHref?: string;
 }
@@ -18,7 +18,7 @@ interface PageData {
 export const handler: Handlers<PageData> = {
   async GET(req, ctx) {
     try {
-      const items = await fetchAnnouncements();
+      const items = await fetchFeatures();
       return ctx.render({ items });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 503) {
@@ -37,37 +37,36 @@ export const handler: Handlers<PageData> = {
   },
 };
 
-export default function AnnouncementsPage({ data }: PageProps<PageData>) {
+export default function FeaturesPage({ data }: PageProps<PageData>) {
   if (data.backendUnavailable) {
-    return (
-      <BackendUnavailablePage retryHref={data.retryHref || "/announcements"} />
-    );
+    return <BackendUnavailablePage retryHref={data.retryHref || "/features"} />;
   }
 
   return (
     <SitePage
-      title="お知らせ"
-      description="PACKAGE FROESSTのお知らせ一覧です。更新情報や追加情報を掲載します。"
-      canonicalPath="/announcements"
+      title="特集"
+      description="名作ゲーム・神ゲーをテーマ別に紹介するPACKAGE FROESSTの特集一覧です。"
+      canonicalPath="/features"
+      keywords={["ゲーム特集", "名作ゲーム特集", "神ゲー特集"]}
       structuredData={{
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        name: "お知らせ",
-        url: canonicalUrl("/announcements"),
+        name: "特集",
+        url: canonicalUrl("/features"),
         description:
-          "PACKAGE FROESSTのお知らせ一覧です。更新情報や追加情報を掲載します。",
+          "名作ゲーム・神ゲーをテーマ別に紹介するPACKAGE FROESSTの特集一覧です。",
         mainEntity: {
           "@type": "ItemList",
           itemListElement: data.items.slice(0, 10).map((item, index) => ({
             "@type": "ListItem",
             position: index + 1,
-            url: canonicalUrl(`/announcements/${item.id}`),
+            url: canonicalUrl(`/features/${item.code}`),
             name: item.title,
           })),
         },
       }}
     >
-      <AnnouncementList items={data.items} />
+      <FeatureList items={data.items} />
     </SitePage>
   );
 }

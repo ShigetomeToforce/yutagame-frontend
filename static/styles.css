@@ -23,10 +23,16 @@ body {
 h1,
 h2,
 h3,
-.section-title,
-.font-black,
-.font-extrabold {
-  font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+.section-title {
+  font-family: inherit;
+}
+
+/* 管理画面(admin)には適用しない。エンドユーザー向け公開ページのみ演出フォントを当てる */
+.public-scope h1,
+.public-scope h2,
+.public-scope h3,
+.public-scope .section-title {
+  font-family: "Orbitron", "Noto Sans JP", sans-serif;
 }
 
 .public-bg {
@@ -121,7 +127,7 @@ h3,
 }
 
 .game-card-title {
-  font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+  font-family: "Orbitron", "Noto Sans JP", sans-serif;
   color: #164e63;
 }
 

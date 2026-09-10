@@ -11,6 +11,27 @@ interface Props {
   showCreate?: boolean;
 }
 
+const statusLabel = (status: string): string =>
+  status === "PUBLISHED" ? "公開" : "下書き";
+
+// ISO日時文字列を yyyy/MM/dd HH:mm 形式に整形する
+const formatDateTime = (value?: string | null): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${
+    pad(date.getDate())
+  } ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const formatPublishPeriod = (item: AnnouncementItem): string => {
+  const start = formatDateTime(item.publishStartAt);
+  const end = formatDateTime(item.publishEndAt);
+  if (!start && !end) return "期間指定なし";
+  return `${start || "指定なし"} \u301c ${end || "指定なし"}`;
+};
+
 export default function AnnouncementList(
   {
     rightActions,
@@ -41,6 +62,19 @@ export default function AnnouncementList(
         <div class="space-y-1">
           <p class="font-semibold text-gray-900">{item.title}</p>
           <p class="text-xs text-gray-500 line-clamp-2">{item.excerpt}</p>
+          <p class="text-xs text-gray-500">{formatPublishPeriod(item)}</p>
+          <p class="text-xs text-gray-500">
+            アクセス数: {(item.accessCount ?? 0).toLocaleString()}
+          </p>
+          <span
+            class={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
+              item.status === "PUBLISHED"
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            {statusLabel(item.status)}
+          </span>
         </div>
       )}
       renderDesktopHeader={() => (
@@ -52,7 +86,10 @@ export default function AnnouncementList(
             状態
           </th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-            公開日
+            公開期間
+          </th>
+          <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+            アクセス数
           </th>
         </>
       )}
@@ -64,11 +101,22 @@ export default function AnnouncementList(
               {item.excerpt}
             </div>
           </td>
-          <td class="px-4 py-3 text-sm text-gray-700">{item.status}</td>
           <td class="px-4 py-3 text-sm text-gray-700">
-            {item.publishedAt
-              ? item.publishedAt.slice(0, 10)
-              : item.createdAt.slice(0, 10)}
+            <span
+              class={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
+                item.status === "PUBLISHED"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              {statusLabel(item.status)}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-sm whitespace-nowrap text-gray-700">
+            {formatPublishPeriod(item)}
+          </td>
+          <td class="px-4 py-3 text-right text-sm text-gray-700">
+            {(item.accessCount ?? 0).toLocaleString()}
           </td>
         </>
       )}

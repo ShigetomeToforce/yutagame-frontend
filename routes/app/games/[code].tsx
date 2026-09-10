@@ -1,5 +1,4 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
-import { Head } from "$fresh/runtime.ts";
 import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
 import GameFavoriteButton from "../../../islands/app/GameFavoriteButton.tsx";
 import {
@@ -12,6 +11,7 @@ import {
 import PublicBannerSlider from "../../../islands/app/PublicBannerSlider.tsx";
 import { buildImageUrl } from "../../../utils/image.ts";
 import { getCookieValue } from "../../../utils/publicEvent.ts";
+import { canonicalUrl, JsonLd, SeoHead } from "../../../utils/seo.tsx";
 
 interface PageData {
   game?: GameItem;
@@ -149,7 +149,7 @@ export const handler: Handlers<PageData> = {
       const querySuffix = query.toString() ? `?${query.toString()}` : "";
       const [game, detailBanners] = await Promise.all([
         appFetch<GameItem>(`/app/games/${ctx.params.code}${querySuffix}`),
-        fetchPublicBanners("game_detail_below"),
+        fetchPublicBanners("game_detail_below", visitorId),
       ]);
       return ctx.render({ game, returnTo, detailBanners });
     } catch (error) {
@@ -195,15 +195,39 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
 
   return (
     <div class="public-bg min-h-screen">
-      <Head>
-        <title>{game.name} - PACKAGE FROESST</title>
-        <meta
-          name="description"
-          content={game.catchCopy || game.overview ||
-            `${game.name} の詳細ページです。`}
-        />
-      </Head>
-      <header class="sticky top-0 z-20 border-b border-cyan-300/20 bg-slate-950/25 backdrop-blur-md">
+      <SeoHead
+        title={game.name}
+        description={`${game.name}の発売日、メーカー、機種、ジャンル、価格、関連キーワードを確認できます。名作ゲーム・神ゲー探しに役立つゲーム詳細ページです。`}
+        path={`/app/games/${game.code}`}
+        keywords={[
+          game.name,
+          game.machine?.name || "",
+          game.genre?.name || "",
+          game.manufacturer?.name || "",
+        ].filter(Boolean)}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "VideoGame",
+          name: game.name,
+          url: canonicalUrl(`/app/games/${game.code}`),
+          image: buildImageUrl(game.imageKey, "games"),
+          description: game.overview || game.catchCopy || game.name,
+          datePublished: game.releaseDate,
+          gamePlatform: game.machine?.name,
+          genre: game.genre?.name,
+          publisher: game.manufacturer?.name,
+          offers: game.listPrice > 0
+            ? {
+              "@type": "Offer",
+              price: game.listPrice,
+              priceCurrency: "JPY",
+            }
+            : undefined,
+        }}
+      />
+      <header class="sticky top-0 z-20 border-b border-cyan-300/20 bg-slate-950/75 backdrop-blur-md">
         <div class="flex w-full items-center justify-between px-4 py-3 sm:px-8 lg:px-12">
           <a
             href="/"

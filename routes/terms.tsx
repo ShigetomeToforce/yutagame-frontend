@@ -5,6 +5,7 @@ export default function TermsPage() {
     <SitePage
       title="利用規約"
       description="PACKAGE FROESSTの利用条件、免責、リンク、禁止事項をまとめた利用規約です。"
+      canonicalPath="/terms"
     >
       <section class="space-y-3">
         <p>

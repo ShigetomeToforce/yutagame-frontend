@@ -31,6 +31,12 @@ export default function ContactInquiryList(
       getKey={(item) => item.id}
       getRowHref={(item) => `/admin/contacts/${item.id}`}
       rowAriaLabel={(item) => `${item.subject} を確認`}
+      getRowClassName={(item) =>
+        item.status === "NEW"
+          ? "bg-red-50 hover:bg-red-100"
+          : item.status === "DONE"
+          ? "bg-gray-100 hover:bg-gray-200"
+          : "hover:bg-gray-50"}
       showRowChevron={true}
       renderMobileRow={(item) => (
         <div class="space-y-1">

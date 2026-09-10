@@ -95,6 +95,18 @@ function RankingMovement(
   );
 }
 
+function formatPrice(value?: number): string {
+  if (!value || value <= 0) return "-";
+  return `${value.toLocaleString()}円`;
+}
+
+function formatReleaseDate(value?: string): string {
+  if (!value) return "-";
+  const [year, month, day] = value.slice(0, 10).split("-");
+  if (!year || !month || !day) return "-";
+  return `${year}年${Number(month)}月${Number(day)}日`;
+}
+
 export default function PublicRankingExplorer(
   { initialResponse, rankingAboveBanners, rankingBelowBanners }: {
     initialResponse: SearchResponse;
@@ -142,11 +154,6 @@ export default function PublicRankingExplorer(
     void loadRanking(1, false);
   };
 
-  const title = rankingType.value === "curated"
-    ? "名作ランキング"
-    : rankingType.value === "views"
-    ? "アクセス数ランキング"
-    : "推しゲーランキング";
   const hasMore = page.value < totalPages.value;
   const navigateToDetail = (code: string) => {
     globalThis.location.href = `/app/games/${code}?returnTo=/app/rankings`;
@@ -158,7 +165,9 @@ export default function PublicRankingExplorer(
         <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
           GAME RANKINGS
         </p>
-        <h1 class="mt-1 text-2xl font-black text-white sm:text-4xl">{title}</h1>
+        <h1 class="mt-1 text-2xl font-black text-white sm:text-4xl">
+          ランキング
+        </h1>
       </section>
 
       <PublicBannerSlider banners={rankingAboveBanners} />
@@ -281,6 +290,20 @@ export default function PublicRankingExplorer(
                       {game.genre?.name || "-"}
                     </strong>
                   </p>
+                  <div class="grid gap-1.5 sm:grid-cols-2">
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>価格</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        {formatPrice(game.listPrice)}
+                      </strong>
+                    </p>
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>発売日</span>
+                      <strong class="max-w-[72%] truncate text-right text-slate-800">
+                        {formatReleaseDate(game.releaseDate)}
+                      </strong>
+                    </p>
+                  </div>
                 </div>
               </div>
             </article>

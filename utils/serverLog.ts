@@ -74,6 +74,56 @@ function logFilePath(scope: LogScope, kind: LogKind, date: string): string {
   return `${logBaseDir()}/${scope}/${kind}_log_${date}.log`;
 }
 
+function parseLogDateFromFileName(name: string): Date | null {
+  const match = name.match(/^[a-z]+_log_(\d{8})\.log$/);
+  if (!match) return null;
+  const raw = match[1];
+  const year = Number(raw.slice(0, 4));
+  const month = Number(raw.slice(4, 6));
+  const day = Number(raw.slice(6, 8));
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+async function cleanupLogDir(path: string, cutoffDate: Date): Promise<void> {
+  let entries: Deno.DirEntry[] = [];
+  try {
+    for await (const entry of Deno.readDir(path)) {
+      entries.push(entry);
+    }
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) return;
+    throw error;
+  }
+
+  await Promise.all(entries.map(async (entry) => {
+    const entryPath = `${path}/${entry.name}`;
+    if (entry.isDirectory) {
+      await cleanupLogDir(entryPath, cutoffDate);
+      return;
+    }
+    if (!entry.isFile) return;
+    const logDate = parseLogDateFromFileName(entry.name);
+    if (!logDate || logDate >= cutoffDate) return;
+    await Deno.remove(entryPath).catch((error) => {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    });
+  }));
+}
+
+export async function cleanupOldServerLogs(retentionDays = 30): Promise<void> {
+  if (!canUseFileSystem() || retentionDays <= 0) return;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - retentionDays);
+  const cutoffDate = new Date(
+    cutoff.getFullYear(),
+    cutoff.getMonth(),
+    cutoff.getDate(),
+  );
+  await cleanupLogDir(logBaseDir(), cutoffDate);
+}
+
 function toStatusCode(value: unknown): number | undefined {
   if (typeof value === "number") return value;
   if (typeof value === "string" && value.trim()) {
@@ -138,6 +188,8 @@ export async function readServerLogs(
   if (!canUseFileSystem()) {
     return { data: [], totalCount: 0, totalPages: 0, fileName: "" };
   }
+
+  await cleanupOldServerLogs();
 
   const scope = normalizeScope(options.scope);
   const kind = normalizeKind(options.kind);

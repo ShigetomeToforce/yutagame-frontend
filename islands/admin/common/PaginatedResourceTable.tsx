@@ -20,6 +20,7 @@ interface PaginatedResourceTableProps<T> {
   getKey: (item: T) => string | number;
   getRowHref?: (item: T) => string;
   rowAriaLabel?: (item: T) => string;
+  getRowClassName?: (item: T) => string;
   showRowChevron?: boolean;
   renderMobileRow: (item: T) => ComponentChildren;
   renderDesktopHeader: () => ComponentChildren;
@@ -51,6 +52,7 @@ export default function PaginatedResourceTable<T>({
   getKey,
   getRowHref,
   rowAriaLabel,
+  getRowClassName,
   showRowChevron = false,
   renderMobileRow,
   renderDesktopHeader,
@@ -301,7 +303,9 @@ export default function PaginatedResourceTable<T>({
                       key={String(getKey(item))}
                       href={rowHref}
                       aria-label={rowAriaLabel?.(item)}
-                      class="relative block p-4 pr-10 space-y-3 hover:bg-gray-50 transition-colors"
+                      class={`relative block p-4 pr-10 space-y-3 transition-colors ${
+                        getRowClassName?.(item) || "hover:bg-gray-50"
+                      }`}
                     >
                       {content}
                     </a>
@@ -311,7 +315,9 @@ export default function PaginatedResourceTable<T>({
                 return (
                   <div
                     key={String(getKey(item))}
-                    class="p-4 space-y-3 hover:bg-gray-50 transition-colors"
+                    class={`p-4 space-y-3 transition-colors ${
+                      getRowClassName?.(item) || "hover:bg-gray-50"
+                    }`}
                   >
                     {content}
                   </div>
@@ -334,9 +340,11 @@ export default function PaginatedResourceTable<T>({
                     return (
                       <tr
                         key={String(getKey(item))}
-                        class={rowHref
-                          ? "cursor-pointer hover:bg-gray-50 transition-colors"
-                          : "hover:bg-gray-50 transition-colors"}
+                        class={`${
+                          rowHref ? "cursor-pointer" : ""
+                        } transition-colors ${
+                          getRowClassName?.(item) || "hover:bg-gray-50"
+                        }`}
                         tabIndex={rowHref ? 0 : undefined}
                         role={rowHref ? "link" : undefined}
                         aria-label={rowHref ? rowAriaLabel?.(item) : undefined}

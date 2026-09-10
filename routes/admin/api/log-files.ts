@@ -1,5 +1,8 @@
 import { Handlers } from "$fresh/server.ts";
-import { readServerLogs } from "../../../utils/serverLog.ts";
+import {
+  cleanupOldServerLogs,
+  readServerLogs,
+} from "../../../utils/serverLog.ts";
 
 function parseNumber(value: string | null, fallback: number): number {
   if (!value) return fallback;
@@ -11,6 +14,7 @@ function parseNumber(value: string | null, fallback: number): number {
 export const handler: Handlers = {
   async GET(req) {
     try {
+      await cleanupOldServerLogs();
       const url = new URL(req.url);
       const result = await readServerLogs({
         scope: url.searchParams.get("scope") || "app",

@@ -5,6 +5,7 @@ export default function CommercialPage() {
     <SitePage
       title="特定商取引法に基づく表記"
       description="PACKAGE FROESSTにおける特定商取引法関連の案内です。現時点の提供形態を記載しています。"
+      canonicalPath="/commercial"
     >
       <section class="space-y-3">
         <p>当サイトは、ゲーム情報の閲覧・検索を目的とした情報サイトです。</p>

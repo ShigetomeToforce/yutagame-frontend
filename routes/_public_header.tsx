@@ -1,3 +1,5 @@
+import PublicHeaderStats from "../islands/app/PublicHeaderStats.tsx";
+
 export default function PublicHeader() {
   return (
     <header class="sticky top-0 z-20 border-b border-cyan-300/20 bg-slate-950/75 backdrop-blur-md">
@@ -15,6 +17,9 @@ export default function PublicHeader() {
         </a>
 
         <div class="ml-auto flex items-center gap-2 sm:gap-3">
+          <div class="hidden xl:block">
+            <PublicHeaderStats />
+          </div>
           <form
             action="/app/games"
             method="get"
@@ -68,6 +73,12 @@ export default function PublicHeader() {
                     ランキング
                   </a>
                   <a
+                    href="/features"
+                    class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
+                  >
+                    特集
+                  </a>
+                  <a
                     href="/about"
                     class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
                   >
@@ -92,6 +103,18 @@ export default function PublicHeader() {
                     お問い合わせ
                   </a>
                   <a
+                    href="/recommendations"
+                    class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
+                  >
+                    おすすめゲーム
+                  </a>
+                  <a
+                    href="/advertising"
+                    class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
+                  >
+                    広告掲載
+                  </a>
+                  <a
                     href="/sitemap"
                     class="rounded bg-cyan-400/10 px-2 py-1 text-cyan-100 hover:bg-cyan-400/25"
                   >
@@ -105,6 +128,9 @@ export default function PublicHeader() {
       </div>
 
       <div class="px-4 pb-3 sm:px-8 md:hidden lg:px-12">
+        <div class="mb-2">
+          <PublicHeaderStats />
+        </div>
         <form
           action="/app/games"
           method="get"

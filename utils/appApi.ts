@@ -111,6 +111,28 @@ export interface AnnouncementItem {
   bodyHtml: string;
   status: string;
   publishedAt?: string;
+  publishStartAt?: string;
+  publishEndAt?: string;
+  displayOrder?: number;
+  accessCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FeatureItem {
+  id: number;
+  code: string;
+  title: string;
+  excerpt: string;
+  bodyHtml: string;
+  thumbnailImageKey?: string;
+  status: string;
+  publishedAt?: string;
+  publishStartAt?: string;
+  publishEndAt?: string;
+  displayOrder?: number;
+  accessCount?: number;
+  games?: GameItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -126,6 +148,7 @@ export interface BannerItem {
   endsAt?: string;
   displayOrder: number;
   clickCount: number;
+  accessCount?: number;
 }
 
 export interface ContactInquiryItem {
@@ -140,9 +163,25 @@ export interface ContactInquiryItem {
   updatedAt: string;
 }
 
+export interface GameRecommendationItem {
+  id: number;
+  gameName: string;
+  reason: string;
+  status: string;
+  adminNote: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SitemapData {
   gameCodes: string[];
   announcementIds: number[];
+  featureCodes: string[];
+}
+
+export interface SiteStats {
+  gameCount: number;
+  totalListPrice: number;
 }
 
 export interface SearchQuery {
@@ -246,10 +285,18 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
 
 export async function fetchPublicBanners(
   placement: string,
+  visitorId?: string,
 ): Promise<BannerItem[]> {
+  const query = new URLSearchParams();
+  if (visitorId) query.set("visitorId", visitorId);
+  const suffix = query.toString() ? `?${query.toString()}` : "";
   return await appFetch<BannerItem[]>(
-    `/app/banners/${encodeURIComponent(placement)}`,
+    `/app/banners/${encodeURIComponent(placement)}${suffix}`,
   );
+}
+
+export async function fetchSiteStats(): Promise<SiteStats> {
+  return await appFetch<SiteStats>("/app/site-stats");
 }
 
 function buildQueryString(params: SearchQuery): string {
@@ -297,10 +344,30 @@ export async function fetchAnnouncements(): Promise<AnnouncementItem[]> {
   return await appFetch<AnnouncementItem[]>("/app/announcements");
 }
 
+export async function fetchFeatures(): Promise<FeatureItem[]> {
+  return await appFetch<FeatureItem[]>("/app/features");
+}
+
+export async function fetchFeatureByCode(
+  code: string,
+  visitorId?: string,
+): Promise<FeatureItem> {
+  const query = new URLSearchParams();
+  if (visitorId) query.set("visitorId", visitorId);
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return await appFetch<FeatureItem>(
+    `/app/features/${encodeURIComponent(code)}${suffix}`,
+  );
+}
+
 export async function fetchAnnouncementById(
   id: number,
+  visitorId?: string,
 ): Promise<AnnouncementItem> {
-  return await appFetch<AnnouncementItem>(`/app/announcements/${id}`);
+  const query = new URLSearchParams();
+  if (visitorId) query.set("visitorId", visitorId);
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return await appFetch<AnnouncementItem>(`/app/announcements/${id}${suffix}`);
 }
 
 export async function submitContactInquiry(
@@ -323,6 +390,21 @@ export async function submitContactInquiry(
   }
 
   return await response.json() as ContactInquiryItem;
+}
+
+export async function submitGameRecommendation(
+  payload: { gameName: string; reason: string },
+): Promise<GameRecommendationItem> {
+  const response = await fetch(`${APP_BASE_URL}/app/game-recommendations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "おすすめゲームの送信に失敗しました。");
+  }
+  return await response.json() as GameRecommendationItem;
 }
 
 export async function fetchSitemapData(): Promise<SitemapData> {

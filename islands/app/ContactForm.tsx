@@ -68,6 +68,7 @@ export default function ContactForm() {
       <div class="space-y-1">
         <label class="text-xs font-semibold text-cyan-100/80">件名</label>
         <input
+          required
           value={subject.value}
           onInput={(
             e,
@@ -81,6 +82,7 @@ export default function ContactForm() {
           お問い合わせ内容
         </label>
         <textarea
+          required
           value={message.value}
           onInput={(
             e,

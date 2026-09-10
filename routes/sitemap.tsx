@@ -32,6 +32,12 @@ export default function SitemapPage() {
               <a href="/contact">お問い合わせ</a>
             </li>
             <li>
+              <a href="/recommendations">おすすめゲーム</a>
+            </li>
+            <li>
+              <a href="/advertising">広告掲載について</a>
+            </li>
+            <li>
               <a href="/privacy">プライバシーポリシー</a>
             </li>
             <li>

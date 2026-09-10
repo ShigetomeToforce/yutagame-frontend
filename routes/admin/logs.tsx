@@ -1,5 +1,6 @@
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import AccessLogList from "../../islands/admin/analytics/AccessLogList.tsx";
+import { cleanupOldServerLogs } from "../../utils/serverLog.ts";
 import {
   type LogKind,
   type LogLevel,
@@ -92,6 +93,8 @@ const logLevels: LogLevel[] = ["debug", "info", "warn", "error"];
 
 export const handler: Handlers<PageData> = {
   async GET(req, ctx) {
+    await cleanupOldServerLogs();
+
     const url = new URL(req.url);
     const scope = url.searchParams.get("scope");
     const source = url.searchParams.get("source");

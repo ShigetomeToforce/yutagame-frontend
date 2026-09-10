@@ -44,6 +44,9 @@ export interface KpiBucket {
   makerSearches: number;
   keywordSearches: number;
   affiliateClicks: number;
+  announcementViews: number;
+  featureViews: number;
+  bannerViews: number;
   errorCount: number;
   topMachines: TopItem[];
   topManufacturers: TopItem[];
@@ -71,6 +74,9 @@ export interface AccessMonthlyRow {
   genreSearches: number;
   keywordSearches: number;
   contactCount: number;
+  announcementViews: number;
+  featureViews: number;
+  bannerViews: number;
 }
 
 export interface AccessMonthlyTable {
