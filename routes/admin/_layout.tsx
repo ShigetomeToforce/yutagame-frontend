@@ -31,6 +31,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🧾 ログ管理";
   } else if (cleanPath.startsWith("/admin/games")) {
     pageTitle = "🎮 ゲーム管理";
+  } else if (cleanPath.startsWith("/admin/rankings")) {
+    pageTitle = "🏆 ランキング管理";
   } else if (cleanPath.startsWith("/admin/machines")) {
     pageTitle = "🖥️ 機種管理";
   } else if (cleanPath.startsWith("/admin/genres")) {
@@ -63,11 +65,6 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       active: cleanPath.startsWith("/admin/dashboard"),
     },
     {
-      label: "🧾 ログ管理",
-      href: "/admin/logs",
-      active: cleanPath.startsWith("/admin/logs"),
-    },
-    {
       label: "🎮 ゲーム管理",
       href: "/admin/games",
       active: cleanPath.startsWith("/admin/games"),
@@ -93,6 +90,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       active: cleanPath.startsWith("/admin/keywords"),
     },
     {
+      label: "🏆 ランキング管理",
+      href: "/admin/rankings",
+      active: cleanPath.startsWith("/admin/rankings"),
+    },
+    {
       label: "📰 お知らせ管理",
       href: "/admin/announcements",
       active: cleanPath.startsWith("/admin/announcements"),
@@ -102,14 +104,9 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       href: "/admin/contacts",
       active: cleanPath.startsWith("/admin/contacts"),
     },
-    {
-      label: "🛠️ メンテナンス管理",
-      href: "/admin/maintenance",
-      active: cleanPath.startsWith("/admin/maintenance"),
-    },
   ];
 
-  const userMenuItems = [
+  const systemMenuItems = [
     {
       label: "👤 Adminユーザー管理",
       href: "/admin/admins",
@@ -119,6 +116,16 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "👥 ユーザー管理",
       href: "/admin/users",
       active: cleanPath.startsWith("/admin/users"),
+    },
+    {
+      label: "🧾 ログ管理",
+      href: "/admin/logs",
+      active: cleanPath.startsWith("/admin/logs"),
+    },
+    {
+      label: "🛠️ メンテナンス管理",
+      href: "/admin/maintenance",
+      active: cleanPath.startsWith("/admin/maintenance"),
     },
   ];
 
@@ -161,7 +168,7 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
 
             <div class="my-3 border-t border-gray-200" />
 
-            {userMenuItems.map((item) => (
+            {systemMenuItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}

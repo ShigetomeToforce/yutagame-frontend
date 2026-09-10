@@ -49,6 +49,7 @@ import * as $admin_manufacturers_code_ from "./routes/admin/manufacturers/[code]
 import * as $admin_manufacturers_layout from "./routes/admin/manufacturers/_layout.tsx";
 import * as $admin_manufacturers_create from "./routes/admin/manufacturers/create.tsx";
 import * as $admin_manufacturers_index from "./routes/admin/manufacturers/index.tsx";
+import * as $admin_rankings_index from "./routes/admin/rankings/index.tsx";
 import * as $admin_users_id_ from "./routes/admin/users/[id].tsx";
 import * as $admin_users_create from "./routes/admin/users/create.tsx";
 import * as $admin_users_index from "./routes/admin/users/index.tsx";
@@ -96,6 +97,7 @@ import * as $admin_machines_MachineForm from "./islands/admin/machines/MachineFo
 import * as $admin_machines_MachineList from "./islands/admin/machines/MachineList.tsx";
 import * as $admin_manufacturers_ManufacturerForm from "./islands/admin/manufacturers/ManufacturerForm.tsx";
 import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufacturers/ManufacturerList.tsx";
+import * as $admin_rankings_GameRankingManager from "./islands/admin/rankings/GameRankingManager.tsx";
 import * as $admin_users_UserForm from "./islands/admin/users/UserForm.tsx";
 import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $app_ContactForm from "./islands/app/ContactForm.tsx";
@@ -155,6 +157,7 @@ const manifest = {
     "./routes/admin/manufacturers/_layout.tsx": $admin_manufacturers_layout,
     "./routes/admin/manufacturers/create.tsx": $admin_manufacturers_create,
     "./routes/admin/manufacturers/index.tsx": $admin_manufacturers_index,
+    "./routes/admin/rankings/index.tsx": $admin_rankings_index,
     "./routes/admin/users/[id].tsx": $admin_users_id_,
     "./routes/admin/users/create.tsx": $admin_users_create,
     "./routes/admin/users/index.tsx": $admin_users_index,
@@ -217,6 +220,8 @@ const manifest = {
       $admin_manufacturers_ManufacturerForm,
     "./islands/admin/manufacturers/ManufacturerList.tsx":
       $admin_manufacturers_ManufacturerList,
+    "./islands/admin/rankings/GameRankingManager.tsx":
+      $admin_rankings_GameRankingManager,
     "./islands/admin/users/UserForm.tsx": $admin_users_UserForm,
     "./islands/admin/users/UserList.tsx": $admin_users_UserList,
     "./islands/app/ContactForm.tsx": $app_ContactForm,
