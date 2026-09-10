@@ -1,6 +1,16 @@
 // 💡 ブラウザ側（Denoがいない世界）でも落ちないように安全に環境変数を取得する
 const isServer = typeof Deno !== "undefined";
 
+type PublicRuntimeConfig = {
+  ADMIN_BASE_URL?: string;
+  APP_BASE_URL?: string;
+  SITE_ORIGIN?: string;
+};
+
+declare global {
+  var __YUTAGAME_PUBLIC_CONFIG__: PublicRuntimeConfig | undefined;
+}
+
 function normalizeApiBaseUrl(rawUrl: string, fallbackUrl: string): string {
   const source = (rawUrl || fallbackUrl).trim();
 
@@ -23,20 +33,31 @@ function normalizeApiBaseUrl(rawUrl: string, fallbackUrl: string): string {
   }
 }
 
+function getClientPublicConfigValue(key: keyof PublicRuntimeConfig): string {
+  if (isServer) return "";
+  return globalThis.__YUTAGAME_PUBLIC_CONFIG__?.[key] || "";
+}
+
 // 💡 環境変数から管理画面用・アプリ用のURLをそれぞれ取得（なければローカルをフォールバック）
 export const ADMIN_BASE_URL = isServer
   ? normalizeApiBaseUrl(
     Deno.env.get("ADMIN_BASE_URL") || "",
     "http://localhost:8080/api",
   )
-  : "http://localhost:8080/api";
+  : normalizeApiBaseUrl(
+    getClientPublicConfigValue("ADMIN_BASE_URL"),
+    "http://localhost:8080/api",
+  );
 
 export const APP_BASE_URL = isServer
   ? normalizeApiBaseUrl(
     Deno.env.get("APP_BASE_URL") || "",
     "http://localhost:8080/api",
   )
-  : "http://localhost:8080/api";
+  : normalizeApiBaseUrl(
+    getClientPublicConfigValue("APP_BASE_URL"),
+    "http://localhost:8080/api",
+  );
 
 function formatAdminUrl(endpoint: string): string {
   const formattedEndpoint = endpoint.startsWith("/")
@@ -133,7 +154,7 @@ export function getAdminToken(): string | null {
  * 3. エラー時、バックエンドが返したエラーメッセージ（あれば）を自動抽出して例外を投げる
  * 4. 成功時、JSONの解析まで終わらせた「生データ」をそのまま返す
  */
-export async function adminFetch<T = any>(
+export async function adminFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {

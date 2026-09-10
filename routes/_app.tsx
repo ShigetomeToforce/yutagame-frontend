@@ -1,4 +1,19 @@
 import { type PageProps } from "$fresh/server.ts";
+
+function publicRuntimeConfigScript(): string {
+  const config = {
+    ADMIN_BASE_URL: Deno.env.get("ADMIN_BASE_URL") ||
+      "http://localhost:8080/api",
+    APP_BASE_URL: Deno.env.get("APP_BASE_URL") || "http://localhost:8080/api",
+    SITE_ORIGIN: Deno.env.get("SITE_ORIGIN") ||
+      Deno.env.get("PUBLIC_SITE_ORIGIN") ||
+      "http://localhost:8000",
+  };
+  return `globalThis.__YUTAGAME_PUBLIC_CONFIG__=${
+    JSON.stringify(config).replaceAll("<", "\\u003c")
+  };`;
+}
+
 export default function App({ Component, url }: PageProps) {
   const isAdminRoute = url.pathname.startsWith("/admin");
 
@@ -13,6 +28,9 @@ export default function App({ Component, url }: PageProps) {
         />
         <meta name="theme-color" content="#040a18" />
         <title>PACKAGE FROESST</title>
+        <script
+          dangerouslySetInnerHTML={{ __html: publicRuntimeConfigScript() }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
