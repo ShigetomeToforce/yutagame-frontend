@@ -55,6 +55,9 @@ import * as $admin_manufacturers_code_ from "./routes/admin/manufacturers/[code]
 import * as $admin_manufacturers_layout from "./routes/admin/manufacturers/_layout.tsx";
 import * as $admin_manufacturers_create from "./routes/admin/manufacturers/create.tsx";
 import * as $admin_manufacturers_index from "./routes/admin/manufacturers/index.tsx";
+import * as $admin_purchase_candidates_id_ from "./routes/admin/purchase-candidates/[id].tsx";
+import * as $admin_purchase_candidates_create from "./routes/admin/purchase-candidates/create.tsx";
+import * as $admin_purchase_candidates_index from "./routes/admin/purchase-candidates/index.tsx";
 import * as $admin_rankings_index from "./routes/admin/rankings/index.tsx";
 import * as $admin_recommendations_id_ from "./routes/admin/recommendations/[id].tsx";
 import * as $admin_recommendations_index from "./routes/admin/recommendations/index.tsx";
@@ -116,6 +119,8 @@ import * as $admin_machines_MachineForm from "./islands/admin/machines/MachineFo
 import * as $admin_machines_MachineList from "./islands/admin/machines/MachineList.tsx";
 import * as $admin_manufacturers_ManufacturerForm from "./islands/admin/manufacturers/ManufacturerForm.tsx";
 import * as $admin_manufacturers_ManufacturerList from "./islands/admin/manufacturers/ManufacturerList.tsx";
+import * as $admin_purchase_candidates_PurchaseCandidateForm from "./islands/admin/purchase-candidates/PurchaseCandidateForm.tsx";
+import * as $admin_purchase_candidates_PurchaseCandidateList from "./islands/admin/purchase-candidates/PurchaseCandidateList.tsx";
 import * as $admin_rankings_GameRankingManager from "./islands/admin/rankings/GameRankingManager.tsx";
 import * as $admin_recommendations_GameRecommendationForm from "./islands/admin/recommendations/GameRecommendationForm.tsx";
 import * as $admin_recommendations_GameRecommendationList from "./islands/admin/recommendations/GameRecommendationList.tsx";
@@ -190,6 +195,12 @@ const manifest = {
     "./routes/admin/manufacturers/_layout.tsx": $admin_manufacturers_layout,
     "./routes/admin/manufacturers/create.tsx": $admin_manufacturers_create,
     "./routes/admin/manufacturers/index.tsx": $admin_manufacturers_index,
+    "./routes/admin/purchase-candidates/[id].tsx":
+      $admin_purchase_candidates_id_,
+    "./routes/admin/purchase-candidates/create.tsx":
+      $admin_purchase_candidates_create,
+    "./routes/admin/purchase-candidates/index.tsx":
+      $admin_purchase_candidates_index,
     "./routes/admin/rankings/index.tsx": $admin_rankings_index,
     "./routes/admin/recommendations/[id].tsx": $admin_recommendations_id_,
     "./routes/admin/recommendations/index.tsx": $admin_recommendations_index,
@@ -268,6 +279,10 @@ const manifest = {
       $admin_manufacturers_ManufacturerForm,
     "./islands/admin/manufacturers/ManufacturerList.tsx":
       $admin_manufacturers_ManufacturerList,
+    "./islands/admin/purchase-candidates/PurchaseCandidateForm.tsx":
+      $admin_purchase_candidates_PurchaseCandidateForm,
+    "./islands/admin/purchase-candidates/PurchaseCandidateList.tsx":
+      $admin_purchase_candidates_PurchaseCandidateList,
     "./islands/admin/rankings/GameRankingManager.tsx":
       $admin_rankings_GameRankingManager,
     "./islands/admin/recommendations/GameRecommendationForm.tsx":

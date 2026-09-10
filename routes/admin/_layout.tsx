@@ -31,6 +31,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🧾 ログ管理";
   } else if (cleanPath.startsWith("/admin/games")) {
     pageTitle = "🎮 ゲーム管理";
+  } else if (cleanPath.startsWith("/admin/purchase-candidates")) {
+    pageTitle = "🛒 購入候補管理";
   } else if (cleanPath.startsWith("/admin/rankings")) {
     pageTitle = "🏆 ランキング管理";
   } else if (cleanPath.startsWith("/admin/features")) {
@@ -74,6 +76,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "🎮 ゲーム管理",
       href: "/admin/games",
       active: cleanPath.startsWith("/admin/games"),
+    },
+    {
+      label: "🛒 購入候補管理",
+      href: "/admin/purchase-candidates",
+      active: cleanPath.startsWith("/admin/purchase-candidates"),
     },
     {
       label: "🖥️ 機種管理",

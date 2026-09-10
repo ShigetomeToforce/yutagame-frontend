@@ -48,6 +48,23 @@ export default function AdminTopPage() {
         </a>
 
         <a
+          href="/admin/purchase-candidates"
+          class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-lime-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800 text-lg group-hover:text-lime-600 transition-colors">
+              🛒 購入候補管理
+            </div>
+            <span class="text-gray-300 group-hover:text-lime-500 transition-colors text-xl font-mono">
+              →
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            未購入・購入済みの候補ゲームを登録し、表示順や基本情報を管理します。
+          </p>
+        </a>
+
+        <a
           href="/admin/machines"
           class="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all group"
         >
