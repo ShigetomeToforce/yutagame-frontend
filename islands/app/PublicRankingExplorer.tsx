@@ -6,6 +6,8 @@ import {
 } from "../../utils/appApi.ts";
 import { buildImageUrl } from "../../utils/image.ts";
 import GameFavoriteButton from "./GameFavoriteButton.tsx";
+import PublicBannerSlider from "./PublicBannerSlider.tsx";
+import { type BannerItem } from "../../utils/appApi.ts";
 
 type RankingType = "curated" | "views" | "favorites";
 type ViewPeriod = "monthly" | "yearly" | "total";
@@ -94,7 +96,11 @@ function RankingMovement(
 }
 
 export default function PublicRankingExplorer(
-  { initialResponse }: { initialResponse: SearchResponse },
+  { initialResponse, rankingAboveBanners, rankingBelowBanners }: {
+    initialResponse: SearchResponse;
+    rankingAboveBanners: BannerItem[];
+    rankingBelowBanners: BannerItem[];
+  },
 ) {
   const rankingType = useSignal<RankingType>("curated");
   const period = useSignal<ViewPeriod>("monthly");
@@ -154,6 +160,8 @@ export default function PublicRankingExplorer(
         </p>
         <h1 class="mt-1 text-2xl font-black text-white sm:text-4xl">{title}</h1>
       </section>
+
+      <PublicBannerSlider banners={rankingAboveBanners} />
 
       <div class="flex flex-wrap gap-2 border-b border-sky-200/25 pb-3">
         {([
@@ -219,8 +227,8 @@ export default function PublicRankingExplorer(
                 }
               }}
             >
-              <div class="border-b border-sky-100 bg-sky-50/45 px-4 py-3">
-                <h2 class="truncate text-base font-black text-slate-900 group-hover:text-sky-700">
+              <div class="game-card-titlebar px-4 py-3">
+                <h2 class="game-card-title truncate text-base font-black">
                   {game.name}
                 </h2>
               </div>
@@ -297,6 +305,7 @@ export default function PublicRankingExplorer(
           </button>
         </div>
       )}
+      <PublicBannerSlider banners={rankingBelowBanners} />
     </div>
   );
 }

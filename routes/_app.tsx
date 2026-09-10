@@ -10,6 +10,16 @@ export default function App({ Component, url }: PageProps) {
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#040a18" />
         <title>PACKAGE FROESST</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+          rel="stylesheet"
+        />
         <link rel="stylesheet" href="/styles.css" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>

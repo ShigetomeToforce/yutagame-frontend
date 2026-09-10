@@ -3,20 +3,37 @@ import { Head } from "$fresh/runtime.ts";
 import PublicHeader from "../_public_header.tsx";
 import BackendUnavailablePage from "../_backend_unavailable_page.tsx";
 import PublicRankingExplorer from "../../islands/app/PublicRankingExplorer.tsx";
-import { appFetch, AppHttpError, SearchResponse } from "../../utils/appApi.ts";
+import {
+  appFetch,
+  AppHttpError,
+  BannerItem,
+  fetchPublicBanners,
+  SearchResponse,
+} from "../../utils/appApi.ts";
 
 interface PageData {
   initialResponse: SearchResponse;
   backendUnavailable?: boolean;
+  rankingAboveBanners: BannerItem[];
+  rankingBelowBanners: BannerItem[];
 }
 
 export const handler: Handlers<PageData> = {
   async GET(_req, ctx) {
     try {
-      const initialResponse = await appFetch<SearchResponse>(
-        "/app/rankings/page?type=curated&page=1&limit=20",
-      );
-      return ctx.render({ initialResponse });
+      const [initialResponse, rankingAboveBanners, rankingBelowBanners] =
+        await Promise.all([
+          appFetch<SearchResponse>(
+            "/app/rankings/page?type=curated&page=1&limit=20",
+          ),
+          fetchPublicBanners("ranking_above"),
+          fetchPublicBanners("ranking_below"),
+        ]);
+      return ctx.render({
+        initialResponse,
+        rankingAboveBanners,
+        rankingBelowBanners,
+      });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 503) {
         return ctx.render({
@@ -28,6 +45,8 @@ export const handler: Handlers<PageData> = {
             limit: 20,
           },
           backendUnavailable: true,
+          rankingAboveBanners: [],
+          rankingBelowBanners: [],
         }, { status: 503 });
       }
       throw error;
@@ -46,7 +65,11 @@ export default function RankingsPage({ data }: PageProps<PageData>) {
       </Head>
       <PublicHeader />
       <main class="w-full px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
-        <PublicRankingExplorer initialResponse={data.initialResponse} />
+        <PublicRankingExplorer
+          initialResponse={data.initialResponse}
+          rankingAboveBanners={data.rankingAboveBanners}
+          rankingBelowBanners={data.rankingBelowBanners}
+        />
       </main>
     </div>
   );

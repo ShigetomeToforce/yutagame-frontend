@@ -15,10 +15,18 @@
 }
 
 body {
-  font-family:
-    "Sora", "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
   background: var(--brand-bg);
   color: var(--brand-text);
+}
+
+h1,
+h2,
+h3,
+.section-title,
+.font-black,
+.font-extrabold {
+  font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
 }
 
 .public-bg {
@@ -106,6 +114,19 @@ body {
 .section-view-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(56, 189, 248, 0.28);
+}
+
+.game-card-titlebar {
+  border-bottom: 1px solid #e0f2fe;
+}
+
+.game-card-title {
+  font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+  color: #164e63;
+}
+
+.group:hover .game-card-title {
+  color: #0369a1;
 }
 
 .spotlight-row {

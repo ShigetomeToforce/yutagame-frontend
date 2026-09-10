@@ -41,6 +41,8 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
     pageTitle = "🏭 メーカー管理";
   } else if (cleanPath.startsWith("/admin/keywords")) {
     pageTitle = "🔑 キーワード管理";
+  } else if (cleanPath.startsWith("/admin/banners")) {
+    pageTitle = "🖼️ バナー管理";
   } else if (cleanPath.startsWith("/admin/announcements")) {
     pageTitle = "📰 お知らせ管理";
   } else if (cleanPath.startsWith("/admin/contacts")) {
@@ -88,6 +90,11 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
       label: "🔑 キーワード管理",
       href: "/admin/keywords",
       active: cleanPath.startsWith("/admin/keywords"),
+    },
+    {
+      label: "🖼️ バナー管理",
+      href: "/admin/banners",
+      active: cleanPath.startsWith("/admin/banners"),
     },
     {
       label: "🏆 ランキング管理",

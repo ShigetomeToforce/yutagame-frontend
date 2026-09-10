@@ -6,7 +6,9 @@ import PublicHeader from "../../_public_header.tsx";
 import {
   appFetch,
   AppHttpError,
+  BannerItem,
   CatalogItem,
+  fetchPublicBanners,
   KeywordItem,
   SearchResponse,
 } from "../../../utils/appApi.ts";
@@ -30,6 +32,8 @@ interface PageData {
   initialResponse: SearchResponse;
   backendUnavailable?: boolean;
   retryHref?: string;
+  searchAboveBanners: BannerItem[];
+  searchBelowBanners: BannerItem[];
 }
 
 export const handler: Handlers<PageData> = {
@@ -63,15 +67,24 @@ export const handler: Handlers<PageData> = {
     }
 
     try {
-      const [machines, genres, manufacturers, keywords, initialResponse] =
-        await Promise
-          .all([
-            appFetch<CatalogItem[]>("/app/catalog/machines"),
-            appFetch<CatalogItem[]>("/app/catalog/genres"),
-            appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-            appFetch<KeywordItem[]>("/app/keywords"),
-            appFetch<SearchResponse>(`/app/games?${query.toString()}`),
-          ]);
+      const [
+        machines,
+        genres,
+        manufacturers,
+        keywords,
+        initialResponse,
+        searchAboveBanners,
+        searchBelowBanners,
+      ] = await Promise
+        .all([
+          appFetch<CatalogItem[]>("/app/catalog/machines"),
+          appFetch<CatalogItem[]>("/app/catalog/genres"),
+          appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+          appFetch<KeywordItem[]>("/app/keywords"),
+          appFetch<SearchResponse>(`/app/games?${query.toString()}`),
+          fetchPublicBanners("search_above"),
+          fetchPublicBanners("search_below"),
+        ]);
 
       return ctx.render({
         machines,
@@ -80,6 +93,8 @@ export const handler: Handlers<PageData> = {
         keywords,
         initialFilters,
         initialResponse,
+        searchAboveBanners,
+        searchBelowBanners,
       });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 503) {
@@ -98,6 +113,8 @@ export const handler: Handlers<PageData> = {
               limit: 20,
             },
             backendUnavailable: true,
+            searchAboveBanners: [],
+            searchBelowBanners: [],
             retryHref: `${url.pathname}${url.search}`,
           },
           { status: 503 },
@@ -142,6 +159,8 @@ export default function SearchPage({ data }: PageProps<PageData>) {
           keywords={data.keywords}
           initialFilters={data.initialFilters}
           initialResponse={data.initialResponse}
+          searchAboveBanners={data.searchAboveBanners}
+          searchBelowBanners={data.searchBelowBanners}
         />
       </main>
     </div>

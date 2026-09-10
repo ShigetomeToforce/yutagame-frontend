@@ -2,14 +2,17 @@ import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { buildImageUrl } from "../utils/image.ts";
 import GameFavoriteButton from "../islands/app/GameFavoriteButton.tsx";
+import PublicBannerSlider from "../islands/app/PublicBannerSlider.tsx";
 import PublicHeader from "./_public_header.tsx";
 import BackendUnavailablePage from "./_backend_unavailable_page.tsx";
 import {
   AnnouncementItem,
   appFetch,
   AppHttpError,
+  BannerItem,
   CatalogItem,
   fetchAnnouncements,
+  fetchPublicBanners,
   GameItem,
   KeywordItem,
   TopContents,
@@ -22,6 +25,8 @@ interface PageData {
   keywords: KeywordItem[];
   top: TopContents;
   announcements: AnnouncementItem[];
+  topAboveBanners: BannerItem[];
+  topBelowBanners: BannerItem[];
   backendUnavailable?: boolean;
   retryHref?: string;
 }
@@ -29,17 +34,27 @@ interface PageData {
 export const handler: Handlers<PageData> = {
   async GET(req, ctx) {
     try {
-      const [machines, genres, manufacturers, keywords, top, announcements] =
-        await Promise.all([
-          appFetch<CatalogItem[]>("/app/catalog/machines"),
-          appFetch<CatalogItem[]>("/app/catalog/genres"),
-          appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
-          appFetch<KeywordItem[]>("/app/keywords"),
-          appFetch<TopContents>(
-            "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
-          ),
-          fetchAnnouncements(),
-        ]);
+      const [
+        machines,
+        genres,
+        manufacturers,
+        keywords,
+        top,
+        announcements,
+        topAboveBanners,
+        topBelowBanners,
+      ] = await Promise.all([
+        appFetch<CatalogItem[]>("/app/catalog/machines"),
+        appFetch<CatalogItem[]>("/app/catalog/genres"),
+        appFetch<CatalogItem[]>("/app/catalog/manufacturers"),
+        appFetch<KeywordItem[]>("/app/keywords"),
+        appFetch<TopContents>(
+          "/app/top?releaseLimit=5&recentLimit=12&randomLimit=12",
+        ),
+        fetchAnnouncements(),
+        fetchPublicBanners("top_above"),
+        fetchPublicBanners("top_below"),
+      ]);
 
       return ctx.render({
         machines,
@@ -48,6 +63,8 @@ export const handler: Handlers<PageData> = {
         keywords,
         top,
         announcements,
+        topAboveBanners,
+        topBelowBanners,
       });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 503) {
@@ -67,6 +84,8 @@ export const handler: Handlers<PageData> = {
               favoriteRanking: [],
             },
             announcements: [],
+            topAboveBanners: [],
+            topBelowBanners: [],
             backendUnavailable: true,
             retryHref: `${requestUrl.pathname}${requestUrl.search}`,
           },
@@ -170,9 +189,8 @@ function shuffleItems<T>(items: T[]): T[] {
 }
 
 function SpotlightDetailCard(
-  { game, rankLabel, compact = false }: {
+  { game, compact = false }: {
     game: GameItem;
-    rankLabel: string;
     compact?: boolean;
   },
 ) {
@@ -201,34 +219,35 @@ function SpotlightDetailCard(
       <div
         class={`grid h-full gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
       >
-        <a
-          href={`/app/games/${game.code}`}
-          class={`relative block overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch ${
+        <div
+          class={`relative overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch ${
             compact ? "h-[180px]" : "h-[220px]"
           }`}
         >
-          <div class="relative h-full w-full">
-            <img
-              src={buildImageUrl(game.imageKey, "games")}
-              alt={game.name}
-              class="absolute inset-0 h-full w-full object-contain object-center"
-            />
-          </div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
-        </a>
+          <a href={`/app/games/${game.code}`} class="block h-full w-full">
+            <div class="relative h-full w-full">
+              <img
+                src={buildImageUrl(game.imageKey, "games")}
+                alt={game.name}
+                class="absolute inset-0 h-full w-full object-contain object-center"
+              />
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
+          </a>
+        </div>
 
         <div class="relative space-y-3 overflow-hidden md:col-span-2">
-          <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200">
-            <span class="inline-flex items-center gap-2">
-              <span>{rankLabel}</span>
-              {isReleaseToday && (
-                <span class="inline-flex items-center rounded-full border border-cyan-200/40 bg-cyan-300/12 px-2 py-0.5 text-[9px] font-black tracking-[0.12em] text-cyan-100/90">
-                  本日リリース
-                </span>
-              )}
-            </span>
-          </p>
-          <a href={`/app/games/${game.code}`} class="block">
+          <div class="flex items-center justify-between gap-3 text-[10px] font-black tracking-[0.18em] text-cyan-200">
+            {isReleaseToday && (
+              <span class="inline-flex items-center rounded-full border border-cyan-200/40 bg-cyan-300/12 px-2 py-0.5 text-[9px] font-black tracking-[0.12em] text-cyan-100/90">
+                本日リリース
+              </span>
+            )}
+            <div class="ml-auto shrink-0">
+              <GameFavoriteButton code={game.code} variant="card" />
+            </div>
+          </div>
+          <a href={`/app/games/${game.code}`} class="block min-w-0">
             <h3
               class={compact
                 ? "line-clamp-1 text-lg font-black text-white sm:text-xl"
@@ -652,13 +671,12 @@ function SpotlightSection({ games }: { games: GameItem[] }) {
       />
 
       <div class="mt-4 p-1 sm:p-2">
-        <SpotlightDetailCard game={lead} rankLabel="PICK 1" />
+        <SpotlightDetailCard game={lead} />
 
         <div class="mt-3 grid gap-3 md:grid-cols-2">
           {sub.map((game, index) => (
             <SpotlightDetailCard
               game={game}
-              rankLabel={`PICK ${index + 2}`}
               compact
             />
           ))}
@@ -739,9 +757,9 @@ function TopGameCard({ game }: { game: GameItem }) {
 
   return (
     <article class="soft-rise group relative block overflow-hidden rounded-2xl border border-sky-200 bg-white">
-      <div class="border-b border-sky-100 bg-sky-50/45 px-3 py-3">
+      <div class="game-card-titlebar px-3 py-3">
         <a href={detailHref} class="block">
-          <p class="truncate text-sm font-extrabold text-slate-900 group-hover:text-sky-700">
+          <p class="game-card-title truncate text-sm font-extrabold">
             {game.name}
           </p>
         </a>
@@ -1041,6 +1059,8 @@ export default function Home({ data }: PageProps<PageData>) {
       <main class="relative z-10 mt-0 w-full space-y-6 px-3 pb-8 sm:-mt-10 sm:space-y-8 sm:px-6 lg:px-10">
         <SpotlightSection games={spotlightGames} />
 
+        <PublicBannerSlider banners={data.topAboveBanners} />
+
         <NewsSection announcements={data.announcements} />
 
         <TopGameStrip
@@ -1099,6 +1119,7 @@ export default function Home({ data }: PageProps<PageData>) {
           href="/app/games?sort=random"
           showViewAll={false}
         />
+        <PublicBannerSlider banners={data.topBelowBanners} />
       </main>
     </div>
   );

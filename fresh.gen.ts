@@ -19,6 +19,9 @@ import * as $admin_announcements_id_ from "./routes/admin/announcements/[id].tsx
 import * as $admin_announcements_create from "./routes/admin/announcements/create.tsx";
 import * as $admin_announcements_index from "./routes/admin/announcements/index.tsx";
 import * as $admin_api_log_files from "./routes/admin/api/log-files.ts";
+import * as $admin_banners_id_ from "./routes/admin/banners/[id].tsx";
+import * as $admin_banners_create from "./routes/admin/banners/create.tsx";
+import * as $admin_banners_index from "./routes/admin/banners/index.tsx";
 import * as $admin_contacts_id_ from "./routes/admin/contacts/[id].tsx";
 import * as $admin_contacts_index from "./routes/admin/contacts/index.tsx";
 import * as $admin_dashboard from "./routes/admin/dashboard.tsx";
@@ -83,6 +86,8 @@ import * as $admin_announcements_AnnouncementForm from "./islands/admin/announce
 import * as $admin_announcements_AnnouncementList from "./islands/admin/announcements/AnnouncementList.tsx";
 import * as $admin_auth_LoginForm from "./islands/admin/auth/LoginForm.tsx";
 import * as $admin_auth_LogoutButton from "./islands/admin/auth/LogoutButton.tsx";
+import * as $admin_banners_BannerForm from "./islands/admin/banners/BannerForm.tsx";
+import * as $admin_banners_BannerManager from "./islands/admin/banners/BannerManager.tsx";
 import * as $admin_common_CsvImportExportActions from "./islands/admin/common/CsvImportExportActions.tsx";
 import * as $admin_common_PaginatedResourceTable from "./islands/admin/common/PaginatedResourceTable.tsx";
 import * as $admin_contacts_ContactInquiryForm from "./islands/admin/contacts/ContactInquiryForm.tsx";
@@ -104,6 +109,7 @@ import * as $admin_users_UserList from "./islands/admin/users/UserList.tsx";
 import * as $app_ContactForm from "./islands/app/ContactForm.tsx";
 import * as $app_GameFavoriteButton from "./islands/app/GameFavoriteButton.tsx";
 import * as $app_GameSearchExplorer from "./islands/app/GameSearchExplorer.tsx";
+import * as $app_PublicBannerSlider from "./islands/app/PublicBannerSlider.tsx";
 import * as $app_PublicRankingExplorer from "./islands/app/PublicRankingExplorer.tsx";
 import * as $auth_LoginForm from "./islands/auth/LoginForm.tsx";
 import * as $auth_LogoutButton from "./islands/auth/LogoutButton.tsx";
@@ -128,6 +134,9 @@ const manifest = {
     "./routes/admin/announcements/create.tsx": $admin_announcements_create,
     "./routes/admin/announcements/index.tsx": $admin_announcements_index,
     "./routes/admin/api/log-files.ts": $admin_api_log_files,
+    "./routes/admin/banners/[id].tsx": $admin_banners_id_,
+    "./routes/admin/banners/create.tsx": $admin_banners_create,
+    "./routes/admin/banners/index.tsx": $admin_banners_index,
     "./routes/admin/contacts/[id].tsx": $admin_contacts_id_,
     "./routes/admin/contacts/index.tsx": $admin_contacts_index,
     "./routes/admin/dashboard.tsx": $admin_dashboard,
@@ -202,6 +211,8 @@ const manifest = {
       $admin_announcements_AnnouncementList,
     "./islands/admin/auth/LoginForm.tsx": $admin_auth_LoginForm,
     "./islands/admin/auth/LogoutButton.tsx": $admin_auth_LogoutButton,
+    "./islands/admin/banners/BannerForm.tsx": $admin_banners_BannerForm,
+    "./islands/admin/banners/BannerManager.tsx": $admin_banners_BannerManager,
     "./islands/admin/common/CsvImportExportActions.tsx":
       $admin_common_CsvImportExportActions,
     "./islands/admin/common/PaginatedResourceTable.tsx":
@@ -230,6 +241,7 @@ const manifest = {
     "./islands/app/ContactForm.tsx": $app_ContactForm,
     "./islands/app/GameFavoriteButton.tsx": $app_GameFavoriteButton,
     "./islands/app/GameSearchExplorer.tsx": $app_GameSearchExplorer,
+    "./islands/app/PublicBannerSlider.tsx": $app_PublicBannerSlider,
     "./islands/app/PublicRankingExplorer.tsx": $app_PublicRankingExplorer,
     "./islands/auth/LoginForm.tsx": $auth_LoginForm,
     "./islands/auth/LogoutButton.tsx": $auth_LogoutButton,

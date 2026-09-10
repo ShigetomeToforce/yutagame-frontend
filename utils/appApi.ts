@@ -115,6 +115,19 @@ export interface AnnouncementItem {
   updatedAt: string;
 }
 
+export interface BannerItem {
+  id: number;
+  title: string;
+  placement: string;
+  imageKey: string;
+  linkUrl: string;
+  openInNewTab: boolean;
+  startsAt?: string;
+  endsAt?: string;
+  displayOrder: number;
+  clickCount: number;
+}
+
 export interface ContactInquiryItem {
   id: number;
   name: string;
@@ -228,6 +241,14 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
   throw new AppHttpError(
     503,
     `バックエンドAPIへ接続できませんでした。候補: ${candidatesText}. 理由: ${reason}`,
+  );
+}
+
+export async function fetchPublicBanners(
+  placement: string,
+): Promise<BannerItem[]> {
+  return await appFetch<BannerItem[]>(
+    `/app/banners/${encodeURIComponent(placement)}`,
   );
 }
 

@@ -2,7 +2,14 @@ import { type Handlers, type PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import BackendUnavailablePage from "../../_backend_unavailable_page.tsx";
 import GameFavoriteButton from "../../../islands/app/GameFavoriteButton.tsx";
-import { appFetch, AppHttpError, GameItem } from "../../../utils/appApi.ts";
+import {
+  appFetch,
+  AppHttpError,
+  type BannerItem,
+  fetchPublicBanners,
+  GameItem,
+} from "../../../utils/appApi.ts";
+import PublicBannerSlider from "../../../islands/app/PublicBannerSlider.tsx";
 import { buildImageUrl } from "../../../utils/image.ts";
 import { getCookieValue } from "../../../utils/publicEvent.ts";
 
@@ -11,6 +18,7 @@ interface PageData {
   returnTo?: string;
   backendUnavailable?: boolean;
   retryHref?: string;
+  detailBanners: BannerItem[];
 }
 
 function toYouTubeEmbed(url: string): string | null {
@@ -139,10 +147,11 @@ export const handler: Handlers<PageData> = {
         query.set("visitorId", visitorId);
       }
       const querySuffix = query.toString() ? `?${query.toString()}` : "";
-      const game = await appFetch<GameItem>(
-        `/app/games/${ctx.params.code}${querySuffix}`,
-      );
-      return ctx.render({ game, returnTo });
+      const [game, detailBanners] = await Promise.all([
+        appFetch<GameItem>(`/app/games/${ctx.params.code}${querySuffix}`),
+        fetchPublicBanners("game_detail_below"),
+      ]);
+      return ctx.render({ game, returnTo, detailBanners });
     } catch (error) {
       if (error instanceof AppHttpError && error.status === 404) {
         return ctx.renderNotFound();
@@ -152,6 +161,7 @@ export const handler: Handlers<PageData> = {
           {
             backendUnavailable: true,
             retryHref: `${url.pathname}${url.search}`,
+            detailBanners: [],
           },
           { status: 503 },
         );
@@ -419,6 +429,9 @@ export default function GameDetailPage({ data }: PageProps<PageData>) {
           </div>
         </article>
       </main>
+      <div class="px-4 pb-8 sm:px-8 lg:px-12">
+        <PublicBannerSlider banners={data.detailBanners} />
+      </div>
     </div>
   );
 }

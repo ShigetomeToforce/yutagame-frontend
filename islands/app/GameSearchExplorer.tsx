@@ -7,6 +7,7 @@ import {
   SearchResponse,
 } from "../../utils/appApi.ts";
 import { buildImageUrl } from "../../utils/image.ts";
+import PublicBannerSlider from "./PublicBannerSlider.tsx";
 import GameFavoriteButton from "./GameFavoriteButton.tsx";
 
 interface SearchFilters {
@@ -25,6 +26,8 @@ interface Props {
   keywords: KeywordItem[];
   initialFilters: SearchFilters;
   initialResponse: SearchResponse;
+  searchAboveBanners: import("../../utils/appApi.ts").BannerItem[];
+  searchBelowBanners: import("../../utils/appApi.ts").BannerItem[];
 }
 
 function RankingBadge({ rank }: { rank?: number }) {
@@ -425,6 +428,8 @@ export default function GameSearchExplorer(props: Props) {
         </form>
       </section>
 
+      <PublicBannerSlider banners={props.searchAboveBanners} />
+
       <div class="flex items-center justify-between rounded-2xl border border-cyan-300/20 bg-black/20 px-4 py-3 text-cyan-50">
         <p class="text-sm font-semibold text-cyan-50 sm:text-base">
           検索結果: {totalCount.value}件
@@ -434,6 +439,7 @@ export default function GameSearchExplorer(props: Props) {
             keyword: {filters.value.keywordCode}
           </span>
         )}
+        <PublicBannerSlider banners={props.searchBelowBanners} />
       </div>
 
       {error.value && (
@@ -460,8 +466,8 @@ export default function GameSearchExplorer(props: Props) {
                 }
               }}
             >
-              <div class="border-b border-sky-100 bg-sky-50/45 px-4 py-3">
-                <h2 class="truncate text-base font-black text-slate-900 group-hover:text-sky-700">
+              <div class="game-card-titlebar px-4 py-3">
+                <h2 class="game-card-title truncate text-base font-black">
                   {game.name}
                 </h2>
               </div>
