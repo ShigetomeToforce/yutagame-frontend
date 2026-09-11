@@ -15,6 +15,11 @@ function todayAsInputDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function stackOf(item: AccessLogItem): string | undefined {
+  const raw = item.fields?.stack;
+  return typeof raw === "string" && raw.trim() !== "" ? raw : undefined;
+}
+
 interface AccessLogListProps {
   initialSource?: LogSource;
   initialScope?: LogScope;
@@ -92,6 +97,16 @@ export default function AccessLogList(props: AccessLogListProps) {
             {item.method || "-"} / {item.statusCode || "-"}
           </p>
           <p class="text-xs text-gray-500 line-clamp-2">{item.message}</p>
+          {stackOf(item) && (
+            <details class="text-xs text-gray-500">
+              <summary class="cursor-pointer text-blue-600">
+                スタックトレースを表示
+              </summary>
+              <pre class="mt-1 max-h-64 overflow-auto rounded bg-slate-900 p-2 text-[11px] text-slate-100 whitespace-pre-wrap">
+                {stackOf(item)}
+              </pre>
+            </details>
+          )}
         </div>
       )}
       renderDesktopHeader={() => (
@@ -120,6 +135,16 @@ export default function AccessLogList(props: AccessLogListProps) {
               method: {item.method || "-"} / status: {item.statusCode || "-"}
             </div>
             <div class="line-clamp-2">message: {item.message || "-"}</div>
+            {stackOf(item) && (
+              <details>
+                <summary class="cursor-pointer text-blue-600">
+                  スタックトレースを表示
+                </summary>
+                <pre class="mt-1 max-h-64 max-w-[480px] overflow-auto rounded bg-slate-900 p-2 text-[11px] text-slate-100 whitespace-pre-wrap">
+                  {stackOf(item)}
+                </pre>
+              </details>
+            )}
           </td>
         </>
       )}
