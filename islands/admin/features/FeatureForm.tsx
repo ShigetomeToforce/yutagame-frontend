@@ -1,3 +1,5 @@
+// deno-lint-ignore-file react-no-danger
+// 編集中の特集HTMLをプレビューする管理画面です。
 import { useEffect, useRef } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 import { adminFetch } from "../../../utils/api.ts";

@@ -23,7 +23,6 @@ export default function GameFavoriteButton(
   { code, variant = "detail" }: Props,
 ) {
   const [status, setStatus] = useState<GameFavoriteStatus | null>(null);
-  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [votedVisual, setVotedVisual] = useState(false);
@@ -57,7 +56,6 @@ export default function GameFavoriteButton(
     let cancelled = false;
     const visitorId = getCookieValue("visitor_id");
 
-    setLoading(true);
     fetchGameFavoriteStatus(code, visitorId)
       .then((result) => {
         if (!cancelled) {
@@ -71,11 +69,6 @@ export default function GameFavoriteButton(
       .catch(() => {
         if (!cancelled) {
           setMessage("推し情報の取得に失敗しました。");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
         }
       });
 

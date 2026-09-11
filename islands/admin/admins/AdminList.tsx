@@ -64,7 +64,7 @@ export default function AdminList(
       getKey={(admin) => admin.id}
       getRowHref={(admin) => `/admin/admins/${admin.id}`}
       rowAriaLabel={(admin) => `${admin.name} の編集画面へ移動`}
-      showRowChevron={true}
+      showRowChevron
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-64">名前</th>

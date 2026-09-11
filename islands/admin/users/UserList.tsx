@@ -64,7 +64,7 @@ export default function UserList(
       getKey={(user) => user.id}
       getRowHref={(user) => `/admin/users/${user.id}`}
       rowAriaLabel={(user) => `${user.name} の編集画面へ移動`}
-      showRowChevron={true}
+      showRowChevron
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-64">名前</th>

@@ -137,9 +137,9 @@ export default function PaginatedResourceTable<T>({
       void loadPage(1, limit.value, searchTerm.value);
     };
 
-    window.addEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
+    globalThis.addEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
     return () => {
-      window.removeEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
+      globalThis.removeEventListener(SEARCH_REFRESH_EVENT, handleRefresh);
     };
   }, []);
 

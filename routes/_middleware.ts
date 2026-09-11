@@ -2,23 +2,15 @@ import { FreshContext } from "$fresh/server.ts";
 import { getMaintenanceStatus } from "../utils/maintenance.ts";
 import { getCookieValue } from "../utils/publicEvent.ts";
 import { logServerEvent } from "../utils/serverLog.ts";
-
-const BYPASS_PREFIXES = [
-  "/admin",
-  "/_fresh",
-  "/images",
-  "/api",
-];
-
-const BYPASS_EXACT_PATHS = new Set([
-  "/maintenance",
-  "/app/out",
-  "/favicon.ico",
-  "/favicon.png",
-  "/logo.png",
-  "/styles.css",
-  "/robots.txt",
-]);
+import { recordPageView } from "../utils/appApi.ts";
+import {
+  resolveLogKind,
+  resolveLogLevel,
+  resolveLogScope,
+  shouldBypassPublicPage,
+  shouldRecordPageView,
+  shouldWriteRequestLog,
+} from "../utils/requestPolicy.ts";
 
 const VISITOR_COOKIE_NAME = "visitor_id";
 
@@ -37,42 +29,21 @@ function ensureVisitorId(
   return { visitorId: buildVisitorId(), shouldSetCookie: true };
 }
 
-function shouldBypass(pathname: string): boolean {
-  if (BYPASS_EXACT_PATHS.has(pathname)) return true;
-  if (BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-    return true;
+function appendVisitorCookie(
+  response: Response,
+  visitorId: string,
+  shouldSetCookie: boolean,
+): Response {
+  if (shouldSetCookie) {
+    // 1年間同じ匿名IDを使うことで、ログイン不要でも日次UUの重複を判定できます。
+    response.headers.append(
+      "set-cookie",
+      `${VISITOR_COOKIE_NAME}=${
+        encodeURIComponent(visitorId)
+      }; Path=/; Max-Age=31536000; SameSite=Lax`,
+    );
   }
-  if (/\.[a-zA-Z0-9]+$/.test(pathname)) return true;
-  return false;
-}
-
-function resolveScope(pathname: string): "app" | "admin" {
-  return pathname.startsWith("/admin") ? "admin" : "app";
-}
-
-function resolveKind(pathname: string): "access" | "api" {
-  return pathname.startsWith("/api") || pathname.startsWith("/admin/api")
-    ? "api"
-    : "access";
-}
-
-function resolveLevel(status: number): "info" | "warn" | "error" {
-  if (status >= 500) return "error";
-  if (status >= 400) return "warn";
-  return "info";
-}
-
-function shouldWriteFileLog(pathname: string): boolean {
-  if (pathname.startsWith("/_fresh") || pathname.startsWith("/images")) {
-    return false;
-  }
-  if (BYPASS_EXACT_PATHS.has(pathname)) {
-    return false;
-  }
-  if (/\.[a-zA-Z0-9]+$/.test(pathname)) {
-    return false;
-  }
-  return true;
+  return response;
 }
 
 function writeRequestLogs(
@@ -81,13 +52,13 @@ function writeRequestLogs(
   status: number,
 ) {
   const pathname = new URL(req.url).pathname;
-  if (!shouldWriteFileLog(pathname)) {
+  if (!shouldWriteRequestLog(pathname)) {
     return;
   }
 
-  const scope = resolveScope(pathname);
-  const kind = resolveKind(pathname);
-  const level = resolveLevel(status);
+  const scope = resolveLogScope(pathname);
+  const kind = resolveLogKind(pathname);
+  const level = resolveLogLevel(status);
   const fields = {
     method: req.method,
     path: pathnameWithQuery,
@@ -105,7 +76,7 @@ function writeRequestError(
   pathnameWithQuery: string,
   error: unknown,
 ) {
-  const scope = resolveScope(new URL(req.url).pathname);
+  const scope = resolveLogScope(new URL(req.url).pathname);
   void logServerEvent(scope, "error", "error", "request failed", {
     method: req.method,
     path: pathnameWithQuery,
@@ -114,37 +85,39 @@ function writeRequestError(
   });
 }
 
+async function writePageView(
+  req: Request,
+  pathname: string,
+  visitorId: string,
+  status: number,
+) {
+  // ブラウザの事前確認HEADやエラーページをPVに含めないよう、正常なGETだけを記録します。
+  if (!shouldRecordPageView(req.method, status)) return;
+  try {
+    await recordPageView(visitorId, pathname);
+  } catch (error) {
+    // 集計基盤の停止で公開ページ自体を閲覧不能にしない設計です。
+    writeRequestError(req, pathname, error);
+  }
+}
+
 export async function handler(req: Request, ctx: FreshContext) {
   const url = new URL(req.url);
   const pathnameWithQuery = `${url.pathname}${url.search}`;
   const { visitorId, shouldSetCookie } = ensureVisitorId(req);
 
-  if (shouldBypass(url.pathname)) {
+  // 管理画面・API・静的ファイルは通常処理へ渡し、公開ページの保守判定とPV記録を行いません。
+  if (shouldBypassPublicPage(url.pathname)) {
     const res = await ctx.next();
     writeRequestLogs(req, pathnameWithQuery, res.status);
-    if (shouldSetCookie) {
-      res.headers.append(
-        "set-cookie",
-        `${VISITOR_COOKIE_NAME}=${
-          encodeURIComponent(visitorId)
-        }; Path=/; Max-Age=31536000; SameSite=Lax`,
-      );
-    }
-    return res;
+    return appendVisitorCookie(res, visitorId, shouldSetCookie);
   }
 
+  // 更新系リクエストではページ表示が発生しないため、保守判定とPV記録を省略します。
   if (req.method !== "GET" && req.method !== "HEAD") {
     const res = await ctx.next();
     writeRequestLogs(req, pathnameWithQuery, res.status);
-    if (shouldSetCookie) {
-      res.headers.append(
-        "set-cookie",
-        `${VISITOR_COOKIE_NAME}=${
-          encodeURIComponent(visitorId)
-        }; Path=/; Max-Age=31536000; SameSite=Lax`,
-      );
-    }
-    return res;
+    return appendVisitorCookie(res, visitorId, shouldSetCookie);
   }
 
   try {
@@ -159,15 +132,7 @@ export async function handler(req: Request, ctx: FreshContext) {
         status: 307,
         headers: { Location: location },
       });
-      if (shouldSetCookie) {
-        res.headers.append(
-          "set-cookie",
-          `${VISITOR_COOKIE_NAME}=${
-            encodeURIComponent(visitorId)
-          }; Path=/; Max-Age=31536000; SameSite=Lax`,
-        );
-      }
-      return res;
+      return appendVisitorCookie(res, visitorId, shouldSetCookie);
     }
   } catch (error) {
     console.error("maintenance check failed", error);
@@ -183,15 +148,7 @@ export async function handler(req: Request, ctx: FreshContext) {
   }
 
   writeRequestLogs(req, pathnameWithQuery, res.status);
+  await writePageView(req, url.pathname, visitorId, res.status);
 
-  if (shouldSetCookie) {
-    res.headers.append(
-      "set-cookie",
-      `${VISITOR_COOKIE_NAME}=${
-        encodeURIComponent(visitorId)
-      }; Path=/; Max-Age=31536000; SameSite=Lax`,
-    );
-  }
-
-  return res;
+  return appendVisitorCookie(res, visitorId, shouldSetCookie);
 }

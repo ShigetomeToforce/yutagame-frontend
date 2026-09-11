@@ -57,7 +57,7 @@ export default function AnnouncementList(
       getKey={(item) => item.id}
       getRowHref={(item) => `/admin/announcements/${item.id}`}
       rowAriaLabel={(item) => `${item.title} を編集`}
-      showRowChevron={true}
+      showRowChevron
       renderMobileRow={(item) => (
         <div class="space-y-1">
           <p class="font-semibold text-gray-900">{item.title}</p>

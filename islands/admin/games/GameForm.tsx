@@ -210,7 +210,7 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const returnTo = params.get("returnTo");
     if (returnTo?.startsWith("/admin/games")) {
       backHref.value = returnTo;
@@ -220,7 +220,7 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
   useEffect(() => {
     return () => {
       if (toastTimer.value !== null) {
-        window.clearTimeout(toastTimer.value);
+        globalThis.clearTimeout(toastTimer.value);
       }
     };
   }, []);
@@ -380,9 +380,9 @@ export default function GameForm({ mode = "create", gameCode }: Props) {
   const showSuccessToast = (message: string) => {
     successToast.value = message;
     if (toastTimer.value !== null) {
-      window.clearTimeout(toastTimer.value);
+      globalThis.clearTimeout(toastTimer.value);
     }
-    toastTimer.value = window.setTimeout(() => {
+    toastTimer.value = globalThis.setTimeout(() => {
       successToast.value = "";
       toastTimer.value = null;
     }, 3200);

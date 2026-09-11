@@ -12,7 +12,7 @@ function safeTarget(to: string | null): string | null {
 }
 
 export const handler: Handlers = {
-  async GET(req) {
+  GET(req) {
     const url = new URL(req.url);
     const target = safeTarget(url.searchParams.get("to"));
     if (!target) {

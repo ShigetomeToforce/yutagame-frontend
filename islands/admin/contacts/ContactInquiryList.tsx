@@ -37,7 +37,7 @@ export default function ContactInquiryList(
           : item.status === "DONE"
           ? "bg-gray-100 hover:bg-gray-200"
           : "hover:bg-gray-50"}
-      showRowChevron={true}
+      showRowChevron
       renderMobileRow={(item) => (
         <div class="space-y-1">
           <p class="font-semibold text-gray-900">{item.subject}</p>

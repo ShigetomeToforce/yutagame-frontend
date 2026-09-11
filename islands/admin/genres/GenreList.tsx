@@ -317,7 +317,7 @@ export default function GenreList(
         getRowHref={(genre) =>
           `/admin/genres/${encodeURIComponent(genre.code)}`}
         rowAriaLabel={(genre) => `${genre.name} の編集画面へ移動`}
-        showRowChevron={true}
+        showRowChevron
         renderDesktopHeader={() => (
           <>
             <th class="p-4 w-52">名前</th>

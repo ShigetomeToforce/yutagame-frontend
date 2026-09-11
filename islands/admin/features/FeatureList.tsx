@@ -43,7 +43,7 @@ export default function FeatureList() {
       getKey={(item) => item.id}
       getRowHref={(item) => `/admin/features/${item.id}`}
       rowAriaLabel={(item) => `${item.title} を編集`}
-      showRowChevron={true}
+      showRowChevron
       renderMobileRow={(item) => (
         <div class="space-y-2">
           <div class="flex gap-3">

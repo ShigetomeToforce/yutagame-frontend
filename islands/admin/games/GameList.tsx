@@ -73,7 +73,7 @@ type GameListPersistedState = {
 function loadPersistedState(): GameListPersistedState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.sessionStorage.getItem(GAME_LIST_STATE_KEY);
+    const raw = globalThis.sessionStorage.getItem(GAME_LIST_STATE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as GameListPersistedState;
     if (!parsed || typeof parsed !== "object") return null;
@@ -85,12 +85,12 @@ function loadPersistedState(): GameListPersistedState | null {
 
 function savePersistedState(state: GameListPersistedState) {
   if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(GAME_LIST_STATE_KEY, JSON.stringify(state));
+  globalThis.sessionStorage.setItem(GAME_LIST_STATE_KEY, JSON.stringify(state));
 }
 
 const triggerSearchRefresh = () => {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(SEARCH_REFRESH_EVENT));
+    globalThis.dispatchEvent(new CustomEvent(SEARCH_REFRESH_EVENT));
   }
 };
 
@@ -133,7 +133,7 @@ export default function GameList(
     const base = `/admin/games/${encodeURIComponent(gameCode)}`;
     if (typeof window === "undefined") return base;
     const returnTo = encodeURIComponent(
-      `${window.location.pathname}${window.location.search}`,
+      `${globalThis.location.pathname}${globalThis.location.search}`,
     );
     return `${base}?returnTo=${returnTo}`;
   };
@@ -614,7 +614,7 @@ export default function GameList(
       getKey={(game) => game.id}
       getRowHref={(game) => buildEditHref(game.code)}
       rowAriaLabel={(game) => `${game.name} の編集画面へ移動`}
-      showRowChevron={true}
+      showRowChevron
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">タイトル</th>

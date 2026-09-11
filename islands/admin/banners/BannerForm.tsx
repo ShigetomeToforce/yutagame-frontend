@@ -24,6 +24,12 @@ const empty = {
 };
 type FormData = typeof empty;
 
+interface BannerResponse extends Omit<FormData, "startsAt" | "endsAt"> {
+  id: number;
+  startsAt?: string | null;
+  endsAt?: string | null;
+}
+
 export default function BannerForm({ id }: { id?: number }) {
   const form = useSignal<FormData>({ ...empty });
   const image = useSignal<File | null>(null);
@@ -35,7 +41,7 @@ export default function BannerForm({ id }: { id?: number }) {
     if (!id) return;
     void (async () => {
       try {
-        const banner = await adminFetch<any>(`/admin/banners/${id}`);
+        const banner = await adminFetch<BannerResponse>(`/admin/banners/${id}`);
         form.value = {
           title: banner.title,
           placement: banner.placement,
@@ -85,11 +91,11 @@ export default function BannerForm({ id }: { id?: number }) {
           : null,
       };
       const banner = id
-        ? await adminFetch<any>(`/admin/banners/${id}`, {
+        ? await adminFetch<BannerResponse>(`/admin/banners/${id}`, {
           method: "PUT",
           body: JSON.stringify(payload),
         })
-        : await adminFetch<any>("/admin/banners", {
+        : await adminFetch<BannerResponse>("/admin/banners", {
           method: "POST",
           body: JSON.stringify(payload),
         });

@@ -687,7 +687,7 @@ function SpotlightSection({ games }: { games: GameItem[] }) {
         <SpotlightDetailCard game={lead} />
 
         <div class="mt-3 grid gap-3 md:grid-cols-2">
-          {sub.map((game, index) => (
+          {sub.map((game) => (
             <SpotlightDetailCard
               game={game}
               compact

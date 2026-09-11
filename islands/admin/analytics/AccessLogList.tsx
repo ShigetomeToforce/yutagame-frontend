@@ -70,7 +70,7 @@ export default function AccessLogList(props: AccessLogListProps) {
               value={targetDate.value}
               onInput={(e) => {
                 targetDate.value = (e.target as HTMLInputElement).value;
-                window.dispatchEvent(new Event("resource-table-search"));
+                globalThis.dispatchEvent(new Event("resource-table-search"));
               }}
               class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
             />

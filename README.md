@@ -1,90 +1,84 @@
-# 🌲 PACKAGE FROESST Frontend (Deno + Fresh)
+# YUTAGAME Frontend
 
-パッケージゲームおよび所有ハードの統合在庫管理システム「PACKAGE
-FROESST」のフロントエンド（管理画面・一般画面）です。
+YUTAGAMEの公開画面と管理画面を提供するフロントエンドです。
 
-## 🛠️ 技術スタック
+## 技術スタック
 
-- **実行環境**: Deno 2.x
-- **フレームワーク**: Fresh (Preact)
-- **コンテナ環境**: Docker / Docker Compose
-- **状態管理**: Preact Signals (`useSignal`)
-- **CSS**: Tailwind CSS
+- Deno 2.x: TypeScriptを直接実行し、format・lint・型検査も内蔵する実行環境
+- Fresh 1.7: ファイルベースルーティングとSSRを提供するWebフレームワーク
+- Preact: UIコンポーネント
+- Signals: Island内の局所的な状態管理
+- Tailwind CSS: 画面スタイル
 
-## ⚙️ 重要なアーキテクチャ・設計思想
+Node.jsのプロジェクトと異なり、基本コマンドは `npm` ではなく `deno task`
+を使います。依存関係とタスクは [deno.json](deno.json) にあります。
 
-### 1. アイランド（Islands）アーキテクチャの役割分担
+## ディレクトリ
 
-Freshは、デフォルトではJavaScriptを含まない静的なHTMLをサーバー側で生成します（サーバーコンポーネント：`routes/`）。
-ボタンのクリックや入力の検知、ドロワーメニューの開閉など、ブラウザ側でJavaScriptの動作必要部分だけを「島」として切り出して実装します（アイランドコンポーネント：`islands/`）。
+- `routes`: URLに対応するページ。サーバーでデータを取得してHTMLを生成する
+- `islands`: 検索、フォーム、モーダルなどブラウザで動く部分
+- `utils`: API通信、SEO、ログなどの共通処理
+- `static`: CSS、画像などそのまま配信するファイル
 
-### 2. Cookie ＋ ミドルウェア（一括関所）による認証ガード
+Freshは通常のページをサーバーでHTML化し、操作が必要なIslandだけJavaScriptをブラウザへ送ります。画面全体をIslandにしないことが、初期表示を軽く保つ基本です。
 
-全ページでログインチェックを共通化し、安全性を高めるために以下の設計を採用しています。
+詳細は [DEVELOPMENT_CONCEPT.md](DEVELOPMENT_CONCEPT.md) を参照してください。
 
-- **保存先**: `localStorage` ではなく、セキュリティの高い `Cookie`
-  にトークン（`admin_token`）を保存。
-- **自動割り込み（関所）**: `routes/admin/_middleware.ts` が、`/admin`
-  配下のページへのアクセスすべてに全自動で先回りして認証チェックを掛けます。
-- **UX最適化**:
-  すでにログイン済みのユーザーが再度ログイン画面（`/admin/login`）を開いた場合は、自動的に管理トップ画面（`/admin`）へリダイレクトします。
+## 起動
 
-### 3. 管理画面の隠蔽（SEO・セキュリティ対策）
+Docker Desktopを起動してから実行します。
 
-本システムは個人コレクションの管理が主目的であり、管理画面（`/admin`）が検索エンジンにヒットすることを防ぐため、`routes/admin/_layout.tsx`
-の `<head>` 内に一括で以下のメタタグを仕込んでいます。
-
-```html
-<meta name="robots" content="noindex,nofollow,noarchive" />
+```bash
+docker compose up -d --build
+docker compose logs -f
+docker compose down
 ```
 
-これにより、Google等の検索ロボットによるクロール、インデックス登録、およびキャッシュの保存を完全に遮断しています。
+ローカルのDenoで直接起動する場合:
 
-### 4. ファイル拡張子の使い分け
+```bash
+deno task start
+```
 
-- **`.tsx`**: 画面の見た目（HTML/JSXタグ）を含むコンポーネント。
-- **`.ts`**:
-  画面の見た目を持たず、純粋なプログラム（APIクライアントやミドルウェアのロジックなど）だけを記述するファイル。
+公開画面は `http://localhost:8000/`、管理ログインは
+`http://localhost:8000/admin/login` です。
 
----
-
-## 🚀 開発環境の起動方法
-
-本プロジェクトは Docker
-を使って管理されています。ローカルのソースコードとコンテナ内部がリアルタイムで同期されるため、**Docker起動中もホットリロード（コード変更の即時反映）が完全に有効**です。
-
-### 1. 環境変数の準備
-
-プロジェクトのルート直下に `.env` ファイルを作成し、以下の内容を設定します。
+## 環境変数
 
 ```ini
-# 🌲 サービス名設定
-SERVICE_NAME=PACKAGE FROESST
-
-# 🔌 バックエンドAPIのアドレス
+SERVICE_NAME=YUTAGAME
 ADMIN_BASE_URL=http://localhost:8080/api
 APP_BASE_URL=http://localhost:8080/api
 ```
 
-### 2. コンテナの起動（コマンド一発）
+コンテナ内のSSRからは `localhost`
+がフロントコンテナ自身を指すため、APIクライアントがDocker向け候補へフォールバックします。
 
-以下のコマンドを叩くだけで、ビルドから起動までバックグラウンドで自動的に完了します。
-
-```bash
-docker compose up -d --build
-```
-
-起動完了後、ブラウザで `http://localhost:8000/admin/login` にアクセスできます。
-
-### 3. コンテナの停止
+## 開発コマンド
 
 ```bash
-docker compose down
+deno fmt
+deno task test
+deno task check
+deno task build
 ```
 
-> ⚠️ **ローカル（Dockerなし）で直接起動したい場合**
-> Denoが直接インストールされている環境であれば、従来通り以下のコマンドでも起動可能です。
->
-> ```bash
-> deno task start
-> ```
+`deno task test` は単体テスト、`deno task check`
+はformat、lint、TypeScript型検査を実行します。
+
+## 認証とCookie
+
+- `admin_token`: 管理APIへ送るJWT。`routes/admin/_middleware.ts`
+  が管理ページを保護する
+- `visitor_id`: 個人情報を持たない匿名ID。PV/UUと「推し」の日次重複防止に使う
+
+共通 [routes/_middleware.ts](routes/_middleware.ts)
+は公開HTMLページの正常なGETを1回だけバックエンドへ通知します。検索条件のクエリ文字列はPVのページ識別に含めません。
+
+## API通信
+
+- 公開API: `utils/appApi.ts` の `appFetch`
+- 管理API: `utils/api.ts` の `adminFetch`
+- CSVなどResponseを直接使う管理API: `adminFetchRaw`
+
+ページやIslandからベースURL・認証・エラー処理を個別実装せず、共通クライアントを使ってください。

@@ -1,3 +1,5 @@
+// deno-lint-ignore-file react-no-danger
+// 実行時設定を安全にエスケープしてscript要素へ渡すため、HTML挿入が必要です。
 import { type PageProps } from "$fresh/server.ts";
 
 function publicRuntimeConfigScript(): string {

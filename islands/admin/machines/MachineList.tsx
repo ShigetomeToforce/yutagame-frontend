@@ -317,7 +317,7 @@ export default function MachineList(
       getRowHref={(machine) =>
         `/admin/machines/${encodeURIComponent(machine.code)}`}
       rowAriaLabel={(machine) => `${machine.name} の編集画面へ移動`}
-      showRowChevron={true}
+      showRowChevron
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">名前</th>

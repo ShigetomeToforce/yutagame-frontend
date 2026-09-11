@@ -87,7 +87,7 @@ function parseLogDateFromFileName(name: string): Date | null {
 }
 
 async function cleanupLogDir(path: string, cutoffDate: Date): Promise<void> {
-  let entries: Deno.DirEntry[] = [];
+  const entries: Deno.DirEntry[] = [];
   try {
     for await (const entry of Deno.readDir(path)) {
       entries.push(entry);

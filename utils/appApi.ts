@@ -1,4 +1,5 @@
 import { APP_BASE_URL } from "./api.ts";
+import { getCookieValue } from "./publicEvent.ts";
 
 const isServer = typeof Deno !== "undefined";
 
@@ -198,13 +199,7 @@ export interface SearchQuery {
 
 function getVisitorIdFromCookie(): string {
   if (isServer || typeof document === "undefined") return "";
-  const cookies = document.cookie.split(";");
-  for (const cookie of cookies) {
-    const [name, ...rest] = cookie.trim().split("=");
-    if (name !== "visitor_id") continue;
-    return decodeURIComponent(rest.join("="));
-  }
-  return "";
+  return getCookieValue(document.cookie, "visitor_id");
 }
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -236,7 +231,11 @@ function buildServerBaseCandidates(): string[] {
   return candidates;
 }
 
-export async function appFetch<T>(endpoint: string): Promise<T> {
+export async function appFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  // ブラウザは公開設定の1URL、SSRはDocker内外の候補を順番に試します。
   const formattedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;
@@ -251,7 +250,7 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
     const url = `${baseUrl}${formattedEndpoint}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, options);
       if (!response.ok) {
         let message = "データの取得に失敗しました。";
         try {
@@ -263,8 +262,10 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
         throw new AppHttpError(response.status, message);
       }
 
+      if (response.status === 204) return undefined as T;
       return await response.json() as T;
     } catch (error) {
+      // HTTPエラーは正しいサーバーからの応答なので再試行せず、通信不能時だけ次候補へ進みます。
       if (error instanceof Error && error.name !== "TypeError") {
         throw error;
       }
@@ -281,6 +282,17 @@ export async function appFetch<T>(endpoint: string): Promise<T> {
     503,
     `バックエンドAPIへ接続できませんでした。候補: ${candidatesText}. 理由: ${reason}`,
   );
+}
+
+export async function recordPageView(
+  visitorId: string,
+  pagePath: string,
+): Promise<void> {
+  await appFetch<void>("/app/page-views", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorId, pagePath }),
+  });
 }
 
 export async function fetchPublicBanners(

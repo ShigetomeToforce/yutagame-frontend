@@ -95,7 +95,7 @@ export default function KeywordList(
       getRowHref={(keyword) =>
         `/admin/keywords/${encodeURIComponent(keyword.code)}`}
       rowAriaLabel={(keyword) => `${keyword.name} の編集画面へ移動`}
-      showRowChevron={true}
+      showRowChevron
       renderDesktopHeader={() => (
         <>
           <th class="p-4 w-52">名前</th>

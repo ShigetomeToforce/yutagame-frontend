@@ -1,3 +1,5 @@
+// deno-lint-ignore-file react-no-danger
+// 管理画面で作成したお知らせ本文HTMLを表示するページです。
 import { type Handlers, type PageProps } from "$fresh/server.ts";
 import {
   type AnnouncementItem,

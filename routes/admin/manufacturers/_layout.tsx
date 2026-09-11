@@ -1,6 +1,9 @@
 import { Head } from "$fresh/runtime.ts";
+import type { ComponentType } from "preact";
 
-export default function ManufacturerLayout({ Component }: { Component: any }) {
+export default function ManufacturerLayout(
+  { Component }: { Component: ComponentType },
+) {
   return (
     <>
       <Head>

@@ -138,7 +138,7 @@ export default function PublicBannerSlider({ banners }: Props) {
             <span class="-translate-y-px">›</span>
           </button>
           <div class="mt-2 flex justify-center gap-1.5">
-            {banners.map((banner, index) => (
+            {banners.map((_, index) => (
               <button
                 type="button"
                 aria-label={`${index + 1}枚目のバナー`}

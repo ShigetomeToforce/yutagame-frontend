@@ -1,3 +1,5 @@
+// deno-lint-ignore-file react-no-danger
+// 検索エンジン向けJSON-LDをscript要素へ格納するため、HTML挿入が必要です。
 import { Head } from "$fresh/runtime.ts";
 
 export const SITE_NAME = "PACKAGE FROESST";
