@@ -1,0 +1,45 @@
+name: Deploy Frontend to EC2
+
+on:
+  push:
+    branches: [main] # または master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
+
+      - name: Transfer frontend files to EC2 temp dir
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/temp-frontend"
+          rsync -avz --exclude '.git' -e "ssh -i ~/.ssh/id_rsa" ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/temp-frontend/
+
+      - name: Build and Restart on EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -x
+
+            # 1. 正式なフロントエンドディレクトリへファイルを反映
+            sudo rsync -a --delete /home/ubuntu/temp-frontend/ /opt/package-forest/app/frontend/
+
+            # 2. 所有者を package-forest に変更
+            sudo chown -R package-forest:package-forest /opt/package-forest/app/frontend/
+
+            # 3. package-forest ユーザーで Deno ビルドを実行
+            sudo -u package-forest bash -lc 'cd /opt/package-forest/app/frontend && /home/package-forest/.deno/bin/deno task build'
+
+            # 4. フロントエンドサービスの再起動
+            sudo systemctl restart package-forest-frontend
+
+            echo "Frontend successfully deployed, built, and restarted!"
+          EOF
