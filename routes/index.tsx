@@ -1063,7 +1063,7 @@ export default function Home({ data }: PageProps<PageData>) {
               OBSESSION.
             </h1>
             <p class="max-w-2xl text-sm text-cyan-50/90 sm:text-base">
-              管理人の愛蔵パッケージ。名作しかない、珠玉のラインナップ。
+              【TEST】管理人の愛蔵パッケージ。名作しかない、珠玉のラインナップ。
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-name: Deploy Frontend to EC2
+name: Deploy Frontend to EC2 via SSM
 
 on:
   push:
@@ -12,21 +12,50 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up SSH Key
+      # 1. AWS認証の設定
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 2. Session Manager プラグインのインストール（ubuntu-latest用）
+      - name: Install Session Manager Plugin
+        run: |
+          curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+          sudo dpkg -i session-manager-plugin.deb
+
+      # 3. SSM経由でバックグラウンドのポートフォワーディング（トンネル）を開始
+      - name: Start SSM Port Forwarding Tunnel
+        run: |
+          aws ssm start-session \
+            --target ${{ secrets.EC2_INSTANCE_ID }} \
+            --document-name AWS-StartPortForwardingSessionToRemoteHost \
+            --parameters '{"portNumber":["22"],"localPortNumber":["2222"],"host":["localhost"]}' &
+
+          sleep 3
+
+      - name: Set up SSH Key (for localhost tunneling)
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
+          echo "Host ec2-ssm" >> ~/.ssh/config
+          echo "  HostName localhost" >> ~/.ssh/config
+          echo "  Port 2222" >> ~/.ssh/config
+          echo "  User ${{ secrets.EC2_USER }}" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
       - name: Transfer frontend files to EC2 temp dir
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/temp-frontend"
-          rsync -avz --exclude '.git' -e "ssh -i ~/.ssh/id_rsa" ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/temp-frontend/
+          ssh ec2-ssm "mkdir -p /home/ubuntu/temp-frontend"
+          rsync -avz --exclude '.git' -e "ssh" ./ ec2-ssm:/home/ubuntu/temp-frontend/
 
       - name: Build and Restart on EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ec2-ssm << 'EOF'
             set -x
 
             # 1. 正式なフロントエンドディレクトリへファイルを反映
@@ -41,5 +70,5 @@ jobs:
             # 4. フロントエンドサービスの再起動
             sudo systemctl restart package-forest-frontend
 
-            echo "Frontend successfully deployed, built, and restarted!"
+            echo "Frontend successfully deployed, built, and restarted via SSM!"
           EOF
