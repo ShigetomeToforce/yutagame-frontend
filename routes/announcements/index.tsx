@@ -21,7 +21,10 @@ export const handler: Handlers<PageData> = {
       const items = await fetchAnnouncements();
       return ctx.render({ items });
     } catch (error) {
-      if (error instanceof AppHttpError && error.status === 503) {
+      if (
+        error instanceof AppHttpError && error.status >= 500 &&
+        error.status < 600
+      ) {
         const requestUrl = new URL(req.url);
         return ctx.render(
           {

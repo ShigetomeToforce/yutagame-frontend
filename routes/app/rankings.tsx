@@ -40,7 +40,10 @@ export const handler: Handlers<PageData> = {
         rankingBelowBanners,
       });
     } catch (error) {
-      if (error instanceof AppHttpError && error.status === 503) {
+      if (
+        error instanceof AppHttpError && error.status >= 500 &&
+        error.status < 600
+      ) {
         return ctx.render({
           initialResponse: {
             data: [],

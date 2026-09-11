@@ -156,7 +156,10 @@ export const handler: Handlers<PageData> = {
       if (error instanceof AppHttpError && error.status === 404) {
         return ctx.renderNotFound();
       }
-      if (error instanceof AppHttpError && error.status === 503) {
+      if (
+        error instanceof AppHttpError && error.status >= 500 &&
+        error.status < 600
+      ) {
         return ctx.render(
           {
             backendUnavailable: true,

@@ -77,7 +77,10 @@ export const handler: Handlers<PageData> = {
         topBelowBanners,
       });
     } catch (error) {
-      if (error instanceof AppHttpError && error.status === 503) {
+      if (
+        error instanceof AppHttpError && error.status >= 500 &&
+        error.status < 600
+      ) {
         const requestUrl = new URL(req.url);
         return ctx.render(
           {

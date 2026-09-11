@@ -97,7 +97,10 @@ export const handler: Handlers<PageData> = {
         searchBelowBanners,
       });
     } catch (error) {
-      if (error instanceof AppHttpError && error.status === 503) {
+      if (
+        error instanceof AppHttpError && error.status >= 500 &&
+        error.status < 600
+      ) {
         return ctx.render(
           {
             machines: [],
