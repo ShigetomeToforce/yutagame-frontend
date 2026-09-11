@@ -1,0 +1,18 @@
+{
+  "name": "PACKAGE FROESST",
+  "short_name": "PACKAGE FROESST",
+  "description": "名作ゲーム・神ゲー・ランキング・機種別ゲームを探せるゲームアーカイブサイト",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#040a18",
+  "theme_color": "#040a18",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

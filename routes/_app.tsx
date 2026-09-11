@@ -29,6 +29,10 @@ export default function App({ Component, url }: PageProps) {
           content={isAdminRoute ? "noindex,nofollow,noarchive" : "index,follow"}
         />
         <meta name="theme-color" content="#040a18" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="apple-mobile-web-app-title" content="PACKAGE FROESST" />
         <title>PACKAGE FROESST</title>
         <script
           dangerouslySetInnerHTML={{ __html: publicRuntimeConfigScript() }}
