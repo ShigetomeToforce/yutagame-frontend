@@ -33,7 +33,6 @@ function RankingBadge({ rank }: { rank?: number }) {
         <span
           class={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 font-black leading-none shadow-md ${topRankStyle}`}
         >
-          <span aria-hidden="true" class="ranking-medal-shine" />
           <span
             aria-hidden="true"
             class={`absolute left-1/2 top-[-0.9rem] z-10 -translate-x-1/2 text-lg leading-none drop-shadow-sm ${crownStyle}`}
@@ -193,16 +192,16 @@ export default function PublicRankingExplorer(
       </div>
 
       {rankingType.value !== "curated" && (
-        <div class="flex flex-wrap gap-2">
+        <div class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
           {([
-            ["monthly", "月間"],
-            ["yearly", "年間"],
-            ["total", "累計"],
+            ["monthly", "Month"],
+            ["yearly", "Year"],
+            ["total", "All"],
           ] as [ViewPeriod, string][]).map(([value, label]) => (
             <button
               type="button"
               onClick={() => selectPeriod(value)}
-              class={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              class={`h-9 w-full rounded-full px-2 text-xs font-bold transition sm:w-24 sm:px-3 ${
                 period.value === value
                   ? "bg-cyan-500 text-white"
                   : "border border-cyan-200/35 bg-black/20 text-cyan-100 hover:bg-black/35"

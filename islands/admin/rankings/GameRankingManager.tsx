@@ -62,20 +62,28 @@ export default function GameRankingManager() {
     draftItems.value = next;
   };
 
+  const saveDraftOrder = async () => {
+    await adminFetch("/admin/rankings/draft", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        gameIds: draftItems.value.map((item) => item.gameId),
+      }),
+    });
+  };
+
   const handleSaveDraft = async () => {
     saving.value = true;
+    errorMessage.value = "";
     try {
-      await adminFetch("/admin/rankings/draft", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          gameIds: draftItems.value.map((item) => item.gameId),
-        }),
-      });
+      await saveDraftOrder();
       await loadRanking();
       selectedTab.value = "draft";
+    } catch (error) {
+      console.error(error);
+      errorMessage.value = "一時保存に失敗しました。";
     } finally {
       saving.value = false;
     }
@@ -83,12 +91,17 @@ export default function GameRankingManager() {
 
   const handlePublish = async () => {
     publishing.value = true;
+    errorMessage.value = "";
     try {
+      await saveDraftOrder();
       await adminFetch("/admin/rankings/publish", {
         method: "POST",
       });
       await loadRanking();
       selectedTab.value = "active";
+    } catch (error) {
+      console.error(error);
+      errorMessage.value = "公開保存に失敗しました。";
     } finally {
       publishing.value = false;
     }
