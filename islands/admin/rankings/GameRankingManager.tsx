@@ -30,10 +30,12 @@ export default function GameRankingManager() {
   const saving = useSignal(false);
   const publishing = useSignal(false);
   const discarding = useSignal(false);
+  const errorMessage = useSignal("");
   const dragIndex = useSignal<number | null>(null);
 
   const loadRanking = async () => {
     loading.value = true;
+    errorMessage.value = "";
     try {
       const response = await adminFetch<RankingResponse>("/admin/rankings");
       activeItems.value = response.active ?? [];
@@ -42,6 +44,7 @@ export default function GameRankingManager() {
       console.error(error);
       activeItems.value = [];
       draftItems.value = [];
+      errorMessage.value = "ランキング情報の取得に失敗しました。";
     } finally {
       loading.value = false;
     }
@@ -110,10 +113,20 @@ export default function GameRankingManager() {
   };
 
   const startDraftFromActive = async () => {
-    draftItems.value = [...activeItems.value];
     selectedTab.value = "draft";
-    if (activeItems.value.length > 0) {
-      await handleSaveDraft();
+    loading.value = true;
+    errorMessage.value = "";
+    try {
+      const items = await adminFetch<RankingItem[]>(
+        "/admin/rankings/edit-order",
+      );
+      draftItems.value = items ?? [];
+    } catch (error) {
+      console.error(error);
+      draftItems.value = [];
+      errorMessage.value = "編集用ランキングの取得に失敗しました。";
+    } finally {
+      loading.value = false;
     }
   };
 
@@ -208,21 +221,31 @@ export default function GameRankingManager() {
         </div>
       )}
 
-      {!loading.value && items.length === 0 && (
+      {errorMessage.value && (
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage.value}
+        </div>
+      )}
+
+      {!loading.value && !errorMessage.value && items.length === 0 &&
+        isDraftView && (
         <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-          <p>
-            {isDraftView
-              ? "一時保存中のランキングはありません。"
-              : "現在公開中のランキングはありません。"}
-          </p>
-          {isDraftView && (
-            <a
-              href="/admin/games"
-              class="mt-3 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
-            >
-              ゲーム管理でランキング対象を追加
-            </a>
-          )}
+          <p>一時保存中のランキングはありません。</p>
+          <button
+            type="button"
+            onClick={startDraftFromActive}
+            disabled={saving.value || loading.value}
+            class="mt-3 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ランキングを編集
+          </button>
+        </div>
+      )}
+
+      {!loading.value && !errorMessage.value && items.length === 0 &&
+        !isDraftView && (
+        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+          <p>現在公開中のランキングはありません。</p>
         </div>
       )}
 
