@@ -1,5 +1,6 @@
 import { assertEquals } from "$std/assert/mod.ts";
 import {
+  isLikelyBotUserAgent,
   resolveLogKind,
   resolveLogLevel,
   resolveLogScope,
@@ -41,4 +42,11 @@ Deno.test("PVは成功したGETだけを対象にする", () => {
   assertEquals(shouldRecordPageView("POST", 204), false);
   assertEquals(shouldRecordPageView("GET", 302), false);
   assertEquals(shouldRecordPageView("GET", 404), false);
+});
+
+Deno.test("PVはBotやクローラーのUser-Agentを対象外にする", () => {
+  assertEquals(isLikelyBotUserAgent("Googlebot/2.1"), true);
+  assertEquals(isLikelyBotUserAgent("Mozilla/5.0 AppleWebKit Safari"), false);
+  assertEquals(shouldRecordPageView("GET", 200, "Googlebot/2.1"), false);
+  assertEquals(shouldRecordPageView("GET", 200, "curl/8.7.1"), false);
 });

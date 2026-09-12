@@ -220,7 +220,7 @@ export default async function AdminLayout(req: Request, ctx: FreshContext) {
         </aside>
 
         {/* 右側：ヘッダー + コンテンツ（ヘッダーは右側の上部に表示） */}
-        <div class="flex-1 flex flex-col min-h-screen">
+        <div class="flex-1 flex min-w-0 flex-col min-h-screen">
           <AdminHeader
             pageTitle={pageTitle}
             serviceName={serviceName}

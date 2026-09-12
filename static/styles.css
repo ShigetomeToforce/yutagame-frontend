@@ -18,10 +18,9 @@ body {
   font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
   background: var(--brand-bg);
   color: var(--brand-text);
-  overflow-x: hidden;
 }
 
-html {
+.public-scope {
   overflow-x: hidden;
 }
 

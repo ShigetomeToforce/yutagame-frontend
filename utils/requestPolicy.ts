@@ -50,6 +50,20 @@ export function resolveLogLevel(status: number): "info" | "warn" | "error" {
   return "info";
 }
 
-export function shouldRecordPageView(method: string, status: number): boolean {
-  return method === "GET" && status >= 200 && status < 300;
+export function isLikelyBotUserAgent(userAgent: string): boolean {
+  const normalized = userAgent.trim().toLowerCase();
+  if (!normalized) return false;
+  return /bot|crawler|spider|slurp|bingpreview|facebookexternalhit|twitterbot|discordbot|linebot|google-inspectiontool|pagespeed|lighthouse|headlesschrome|curl|wget|python-requests|go-http-client/
+    .test(
+      normalized,
+    );
+}
+
+export function shouldRecordPageView(
+  method: string,
+  status: number,
+  userAgent = "",
+): boolean {
+  return method === "GET" && status >= 200 && status < 300 &&
+    !isLikelyBotUserAgent(userAgent);
 }

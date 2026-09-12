@@ -4,6 +4,7 @@ import { getCookieValue } from "../utils/publicEvent.ts";
 import { logServerEvent } from "../utils/serverLog.ts";
 import { recordPageView } from "../utils/appApi.ts";
 import {
+  isLikelyBotUserAgent,
   resolveLogKind,
   resolveLogLevel,
   resolveLogScope,
@@ -92,7 +93,13 @@ async function writePageView(
   status: number,
 ) {
   // ブラウザの事前確認HEADやエラーページをPVに含めないよう、正常なGETだけを記録します。
-  if (!shouldRecordPageView(req.method, status)) return;
+  if (
+    !shouldRecordPageView(
+      req.method,
+      status,
+      req.headers.get("user-agent") || "",
+    )
+  ) return;
   try {
     await recordPageView(visitorId, pathname);
   } catch (error) {
@@ -104,7 +111,10 @@ async function writePageView(
 export async function handler(req: Request, ctx: FreshContext) {
   const url = new URL(req.url);
   const pathnameWithQuery = `${url.pathname}${url.search}`;
-  const { visitorId, shouldSetCookie } = ensureVisitorId(req);
+  const isBot = isLikelyBotUserAgent(req.headers.get("user-agent") || "");
+  const { visitorId, shouldSetCookie } = isBot
+    ? { visitorId: "", shouldSetCookie: false }
+    : ensureVisitorId(req);
 
   // 管理画面・API・静的ファイルは通常処理へ渡し、公開ページの保守判定とPV記録を行いません。
   if (shouldBypassPublicPage(url.pathname)) {
