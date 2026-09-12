@@ -116,6 +116,12 @@ export default function AdminHeader({
             </div>
           </div>
           <nav class="space-y-1">
+            <a
+              href="/"
+              class="mb-2 block rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100 hover:text-sky-900"
+            >
+              Appへ移動
+            </a>
             {menuItems.map((item) => (
               <a
                 key={item.href}

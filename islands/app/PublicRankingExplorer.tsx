@@ -161,8 +161,8 @@ export default function PublicRankingExplorer(
 
   return (
     <div class="space-y-6">
-      <section class="rounded-3xl border border-cyan-300/20 bg-slate-950/60 px-5 py-5 text-cyan-50 shadow-2xl backdrop-blur-md sm:px-6">
-        <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+      <section class="px-1 py-2 text-cyan-50 sm:px-2">
+        <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200/80 sm:text-xs">
           GAME RANKINGS
         </p>
         <h1 class="mt-1 text-2xl font-black text-white sm:text-4xl">
@@ -172,16 +172,16 @@ export default function PublicRankingExplorer(
 
       <PublicBannerSlider banners={rankingAboveBanners} />
 
-      <div class="flex flex-wrap gap-2 border-b border-sky-200/25 pb-3">
+      <div class="grid grid-cols-3 gap-2 border-b border-sky-200/25 pb-3 sm:flex sm:flex-wrap">
         {([
-          ["curated", "名作ランキング"],
-          ["views", "アクセス数ランキング"],
-          ["favorites", "推しゲーランキング"],
+          ["curated", "Classic"],
+          ["views", "Views"],
+          ["favorites", "Picks"],
         ] as [RankingType, string][]).map(([type, label]) => (
           <button
             type="button"
             onClick={() => selectType(type)}
-            class={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+            class={`h-10 w-full rounded-lg px-2 text-center text-sm font-bold transition sm:w-32 sm:px-3 ${
               rankingType.value === type
                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
                 : "border border-cyan-200/35 bg-black/20 text-cyan-100 hover:bg-black/35"
@@ -220,11 +220,11 @@ export default function PublicRankingExplorer(
         </p>
       )}
 
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-9">
         {games.value.map((game) => {
           return (
-            <article
-              class="soft-rise group cursor-pointer overflow-hidden rounded-2xl border border-sky-200 bg-white transition duration-300 hover:border-emerald-300/70"
+            <div
+              class="soft-rise group w-full min-w-0 cursor-pointer"
               role="link"
               tabIndex={0}
               aria-label={`${game.name} の詳細ページへ`}
@@ -236,77 +236,81 @@ export default function PublicRankingExplorer(
                 }
               }}
             >
-              <div class="game-card-titlebar px-4 py-3">
-                <h2 class="game-card-title truncate text-base font-black">
+              <h2 class="game-card-floating-title mb-1 line-clamp-2 min-h-[2.6rem] text-base font-black leading-tight">
+                <span class="hover:underline">
                   {game.name}
-                </h2>
-              </div>
-              <div class="relative">
-                <img
-                  src={buildImageUrl(game.imageKey, "games")}
-                  alt={game.name}
-                  class="h-56 w-full object-cover"
-                />
-                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div class="absolute left-2 top-2 z-10 flex items-start gap-1">
-                  <RankingBadge rank={game.rank} />
-                  {rankingType.value === "curated" && (
-                    <RankingMovement
-                      rank={game.rank}
-                      previousRank={game.previousRank}
-                    />
-                  )}
-                </div>
-                <div
-                  class="absolute right-3 top-3 z-10"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <GameFavoriteButton code={game.code} variant="card" />
-                </div>
-              </div>
-              <div class="space-y-3 p-4 text-slate-700">
-                <p class="h-6 truncate text-xs leading-[1.1rem] text-slate-600">
-                  {game.catchCopy || ""}
-                </p>
-                <p class="text-[10px] font-black tracking-[0.14em] text-slate-500">
-                  GAME INFO
-                </p>
-                <div class="space-y-1.5 text-[12px] text-slate-700">
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>メーカー</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      {game.manufacturer?.name || "-"}
-                    </strong>
-                  </p>
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>機種</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      {game.machine?.name || "-"}
-                    </strong>
-                  </p>
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>ジャンル</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      {game.genre?.name || "-"}
-                    </strong>
-                  </p>
-                  <div class="grid gap-1.5 sm:grid-cols-2">
-                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                      <span>価格</span>
-                      <strong class="max-w-[62%] truncate text-right text-slate-800">
-                        {formatPrice(game.listPrice)}
-                      </strong>
-                    </p>
-                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                      <span>発売日</span>
-                      <strong class="max-w-[72%] truncate text-right text-slate-800">
-                        {formatReleaseDate(game.releaseDate)}
-                      </strong>
-                    </p>
+                </span>
+              </h2>
+
+              <article class="game-info-card w-full max-w-full overflow-hidden rounded-2xl border border-sky-200/70 transition duration-300 hover:border-emerald-300/70">
+                <div class="relative">
+                  <img
+                    src={buildImageUrl(game.imageKey, "games")}
+                    alt={game.name}
+                    class="h-56 w-full object-cover"
+                  />
+                  <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div class="absolute left-2 top-2 z-10 flex items-start gap-1">
+                    <RankingBadge rank={game.rank} />
+                    {rankingType.value === "curated" && (
+                      <RankingMovement
+                        rank={game.rank}
+                        previousRank={game.previousRank}
+                      />
+                    )}
+                  </div>
+                  <div
+                    class="absolute right-3 top-3 z-10"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <GameFavoriteButton code={game.code} variant="card" />
                   </div>
                 </div>
-              </div>
-            </article>
+
+                <div class="space-y-3 p-4 text-slate-700">
+                  <p class="h-6 truncate text-xs leading-[1.1rem] text-slate-600">
+                    {game.catchCopy || ""}
+                  </p>
+                  <p class="text-[10px] font-black tracking-[0.14em] text-slate-500">
+                    GAME INFO
+                  </p>
+                  <div class="space-y-1.5 text-[12px] text-slate-700">
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>メーカー</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        {game.manufacturer?.name || "-"}
+                      </strong>
+                    </p>
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>機種</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        {game.machine?.name || "-"}
+                      </strong>
+                    </p>
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>ジャンル</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        {game.genre?.name || "-"}
+                      </strong>
+                    </p>
+                    <div class="grid gap-1.5 sm:grid-cols-2">
+                      <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                        <span>価格</span>
+                        <strong class="max-w-[62%] truncate text-right text-slate-800">
+                          {formatPrice(game.listPrice)}
+                        </strong>
+                      </p>
+                      <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                        <span>発売日</span>
+                        <strong class="max-w-[72%] truncate text-right text-slate-800">
+                          {formatReleaseDate(game.releaseDate)}
+                        </strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
           );
         })}
       </div>

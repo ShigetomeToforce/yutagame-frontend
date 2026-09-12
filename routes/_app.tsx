@@ -16,6 +16,10 @@ function publicRuntimeConfigScript(): string {
   };`;
 }
 
+function adminAuthStateScript(): string {
+  return `document.body.dataset.adminAuth=document.cookie.split('; ').some((row)=>row.startsWith('admin_token='))?'true':'false';`;
+}
+
 export default function App({ Component, url }: PageProps) {
   const isAdminRoute = url.pathname.startsWith("/admin");
 
@@ -51,6 +55,7 @@ export default function App({ Component, url }: PageProps) {
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
       <body class="min-h-screen bg-slate-950 text-gray-900">
+        <script dangerouslySetInnerHTML={{ __html: adminAuthStateScript() }} />
         <div
           class={`flex min-h-screen flex-col ${
             isAdminRoute ? "" : "public-scope"
@@ -62,13 +67,13 @@ export default function App({ Component, url }: PageProps) {
 
           {!isAdminRoute && (
             <footer class="border-t border-cyan-300/20 bg-slate-950 text-cyan-50">
-              <div class="flex w-full flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
+              <div class="flex w-full flex-col gap-4 px-4 pb-10 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:pb-12 lg:px-12">
                 <div>
                   <a href="/" class="text-sm font-semibold hover:text-white">
-                    PACKAGE FROESST
+                    PACKAGE FOREST
                   </a>
                   <p class="mt-1 text-xs text-cyan-100/70">
-                    ゲーム検索・アーカイブ・お知らせ・問い合わせ
+                    管理人の愛蔵パッケージ。名作しかない、珠玉のラインナップ。
                   </p>
                 </div>
                 <nav class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-cyan-100/85">

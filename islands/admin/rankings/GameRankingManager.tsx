@@ -110,10 +110,11 @@ export default function GameRankingManager() {
   };
 
   const startDraftFromActive = async () => {
-    if (activeItems.value.length === 0) return;
     draftItems.value = [...activeItems.value];
     selectedTab.value = "draft";
-    await handleSaveDraft();
+    if (activeItems.value.length > 0) {
+      await handleSaveDraft();
+    }
   };
 
   const isDraftView = selectedTab.value === "draft";
@@ -160,8 +161,7 @@ export default function GameRankingManager() {
             </button>
           </div>
         )}
-        {!isDraftView && activeItems.value.length > 0 &&
-          draftItems.value.length === 0 && (
+        {!isDraftView && draftItems.value.length === 0 && (
           <button
             type="button"
             onClick={startDraftFromActive}
@@ -210,9 +210,19 @@ export default function GameRankingManager() {
 
       {!loading.value && items.length === 0 && (
         <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-          {isDraftView
-            ? "一時保存中のランキングはありません。"
-            : "現在公開中のランキングはありません。"}
+          <p>
+            {isDraftView
+              ? "一時保存中のランキングはありません。"
+              : "現在公開中のランキングはありません。"}
+          </p>
+          {isDraftView && (
+            <a
+              href="/admin/games"
+              class="mt-3 inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              ゲーム管理でランキング対象を追加
+            </a>
+          )}
         </div>
       )}
 

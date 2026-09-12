@@ -18,6 +18,11 @@ body {
   font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
   background: var(--brand-bg);
   color: var(--brand-text);
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 h1,
@@ -63,6 +68,16 @@ h3,
   );
   border: 1px solid var(--brand-line);
   box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+}
+
+.public-scope .grid > * {
+  min-width: 0;
+}
+
+.banner-slider {
+  max-width: 100%;
+  overflow-x: clip;
+  contain: paint;
 }
 
 .public-chip {
@@ -122,6 +137,51 @@ h3,
   box-shadow: 0 8px 16px rgba(56, 189, 248, 0.28);
 }
 
+.public-fixed-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+.public-header-spacer {
+  height: calc(57px + env(safe-area-inset-top));
+}
+
+.public-menu-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 23, 43, 0.98) 0%,
+      rgba(5, 16, 31, 0.99) 100%
+    ),
+    radial-gradient(
+    circle at 18% 0%,
+    rgba(34, 211, 238, 0.16),
+    transparent 34%
+  );
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.public-menu-panel a {
+  background: rgba(3, 13, 28, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+.public-menu-panel a:hover {
+  background: rgba(17, 86, 118, 0.72);
+}
+
+.public-menu-panel .admin-menu-link {
+  background: rgba(6, 95, 70, 0.88);
+}
+
+@media (min-width: 640px) {
+  .public-header-spacer {
+    height: calc(73px + env(safe-area-inset-top));
+  }
+}
+
 .game-card-titlebar {
   border-bottom: 1px solid #e0f2fe;
 }
@@ -131,8 +191,52 @@ h3,
   color: #164e63;
 }
 
+.game-card-floating-title {
+  font-family: "Orbitron", "Noto Sans JP", sans-serif;
+  color: #e0f7ff;
+  text-shadow: 0 1px 10px rgba(34, 211, 238, 0.22);
+}
+
+.game-info-card {
+  background: linear-gradient(180deg, #f2fbff 0%, #e8f7ff 54%, #f4fff9 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  max-width: 100%;
+}
+
+.birthday-badge {
+  position: relative;
+  isolation: isolate;
+}
+
+.birthday-badge::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    rgba(251, 191, 36, 0.42),
+    rgba(34, 211, 238, 0.36),
+    rgba(34, 197, 94, 0.38)
+  );
+  filter: blur(8px);
+}
+
+.admin-menu-link {
+  display: none;
+}
+
+body[data-admin-auth="true"] .admin-menu-link {
+  display: block;
+}
+
 .group:hover .game-card-title {
   color: #0369a1;
+}
+
+.group:hover .game-card-floating-title {
+  color: #67e8f9;
 }
 
 .spotlight-row {

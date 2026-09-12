@@ -140,160 +140,168 @@ function FeatureGameCard(
   const rowMinHeightClass = youtubeEmbed
     ? "md:min-h-[520px]"
     : "md:min-h-[360px]";
+  const titleSizeClass = game.name.length > 28
+    ? "text-base sm:text-xl"
+    : "text-lg sm:text-2xl";
 
   return (
-    <article class="spotlight-card soft-rise relative overflow-hidden rounded-3xl">
-      <div
-        class={`grid gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
-      >
-        <div
-          class={`relative h-[220px] overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch ${
-            reverseOnDesktop ? "md:order-2" : "md:order-1"
-          }`}
+    <div class="soft-rise group w-full min-w-0">
+      <a href={`/app/games/${game.code}`} class="mb-6 block min-w-0">
+        <h3
+          class={`game-card-floating-title break-words font-black leading-tight ${titleSizeClass}`}
         >
-          <a href={`/app/games/${game.code}`} class="block h-full w-full">
-            <div class="relative h-full w-full">
-              <img
-                src={buildImageUrl(game.imageKey, "games")}
-                alt={game.name}
-                class="absolute inset-0 h-full w-full object-contain object-center"
-              />
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
-          </a>
-        </div>
+          {game.name}
+        </h3>
+      </a>
 
+      <article class="spotlight-card relative overflow-hidden rounded-3xl">
         <div
-          class={`relative space-y-3 overflow-hidden md:col-span-2 ${
-            reverseOnDesktop ? "md:order-1" : "md:order-2"
-          }`}
+          class={`grid gap-3 p-3 sm:p-4 md:grid-cols-3 md:items-stretch md:gap-4 ${rowMinHeightClass}`}
         >
-          <div class="flex items-center justify-between gap-3 text-[10px] font-black tracking-[0.18em] text-cyan-200">
-            <p>PICK {index + 1}</p>
-            <div class="ml-auto shrink-0">
-              <GameFavoriteButton code={game.code} variant="card" />
-            </div>
-          </div>
-          <a href={`/app/games/${game.code}`} class="block min-w-0">
-            <h3 class="line-clamp-1 text-xl font-black text-white sm:text-2xl">
-              {game.name}
-            </h3>
-          </a>
-
-          {(catchCopy || subCatch) && (
-            <div class="space-y-1 rounded-xl border border-cyan-300/20 bg-black/15 px-3 py-2">
-              {catchCopy && (
-                <p class="text-sm font-extrabold leading-snug text-cyan-50 sm:text-base">
-                  {catchCopy}
-                </p>
-              )}
-              {subCatch && (
-                <p class="border-l-2 border-cyan-300/45 pl-2 text-xs leading-relaxed text-cyan-100/90 sm:text-sm">
-                  {subCatch}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div class="grid gap-1.5 text-[12px] text-slate-100 sm:grid-cols-2">
-            <p class="spotlight-row">
-              <span>メーカー</span>
-              <strong class="max-w-[62%] overflow-hidden text-ellipsis whitespace-nowrap text-right">
-                {game.manufacturer?.name || "-"}
-              </strong>
-            </p>
-            <p class="spotlight-row">
-              <span>機種</span>
-              <strong>{game.machine?.name || "-"}</strong>
-            </p>
-            <p class="spotlight-row">
-              <span>ジャンル</span>
-              <strong>{formatGenre(game)}</strong>
-            </p>
-            <p class="spotlight-row">
-              <span>価格</span>
-              <strong>{formatPrice(game.listPrice)}</strong>
-            </p>
-            <p class="spotlight-row">
-              <span>発売日</span>
-              <strong>{formatReleaseDate(game.releaseDate)}</strong>
-            </p>
-          </div>
-
-          {keywordItems.length > 0 && (
-            <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3">
-              <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
-                KEYWORDS
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                {keywordItems.map((keyword) => (
-                  <span class="inline-flex max-w-full rounded-full border border-cyan-200/25 bg-cyan-300/12 px-3 py-1 text-[11px] font-semibold text-cyan-50">
-                    {keyword}
-                  </span>
-                ))}
+          <div
+            class={`relative h-[220px] overflow-hidden rounded-2xl md:col-span-1 md:h-full md:self-stretch ${
+              reverseOnDesktop ? "md:order-2" : "md:order-1"
+            }`}
+          >
+            <a href={`/app/games/${game.code}`} class="block h-full w-full">
+              <div class="relative h-full w-full">
+                <img
+                  src={buildImageUrl(game.imageKey, "games")}
+                  alt={game.name}
+                  class="absolute inset-0 h-full w-full object-contain object-center"
+                />
               </div>
-            </section>
-          )}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent md:bg-gradient-to-r" />
+            </a>
+          </div>
 
-          <div class="grid gap-3 md:grid-cols-2 md:items-start">
-            {youtubeEmbed && (
-              <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3 md:col-span-1">
-                <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
-                  YOUTUBE
-                </p>
-                <div class="mt-2 aspect-video overflow-hidden rounded-lg border border-cyan-300/30 bg-black/20">
-                  <iframe
-                    class="h-full w-full"
-                    src={youtubeEmbed}
-                    title={`${game.name} movie`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </section>
+          <div
+            class={`relative space-y-3 overflow-hidden md:col-span-2 ${
+              reverseOnDesktop ? "md:order-1" : "md:order-2"
+            }`}
+          >
+            <div class="flex items-center justify-between gap-3 text-[10px] font-black tracking-[0.18em] text-cyan-200">
+              <p>PICK {index + 1}</p>
+              <div class="ml-auto shrink-0">
+                <GameFavoriteButton code={game.code} variant="card" />
+              </div>
+            </div>
+
+            {(catchCopy || subCatch) && (
+              <div class="space-y-1 rounded-xl border border-cyan-300/20 bg-black/15 px-3 py-2">
+                {catchCopy && (
+                  <p class="text-sm font-extrabold leading-snug text-cyan-50 sm:text-base">
+                    {catchCopy}
+                  </p>
+                )}
+                {subCatch && (
+                  <p class="border-l-2 border-cyan-300/45 pl-2 text-xs leading-relaxed text-cyan-100/90 sm:text-sm">
+                    {subCatch}
+                  </p>
+                )}
+              </div>
             )}
 
-            {hasActionButtons && (
+            <div class="grid gap-1.5 text-[12px] text-slate-100 sm:grid-cols-2">
+              <p class="spotlight-row">
+                <span>メーカー</span>
+                <strong class="max-w-[62%] overflow-hidden text-ellipsis whitespace-nowrap text-right">
+                  {game.manufacturer?.name || "-"}
+                </strong>
+              </p>
+              <p class="spotlight-row">
+                <span>機種</span>
+                <strong>{game.machine?.name || "-"}</strong>
+              </p>
+              <p class="spotlight-row">
+                <span>ジャンル</span>
+                <strong>{formatGenre(game)}</strong>
+              </p>
+              <p class="spotlight-row">
+                <span>価格</span>
+                <strong>{formatPrice(game.listPrice)}</strong>
+              </p>
+              <p class="spotlight-row">
+                <span>発売日</span>
+                <strong>{formatReleaseDate(game.releaseDate)}</strong>
+              </p>
+            </div>
+
+            {keywordItems.length > 0 && (
               <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3">
                 <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
-                  OFFICIAL & BUY
+                  KEYWORDS
                 </p>
-                <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {game.officialSiteUrl && (
-                    <a
-                      href={buildOutboundHref(
-                        game.officialSiteUrl,
-                        game.code,
-                        "OFFICIAL",
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30"
-                    >
-                      <span class="relative z-10">公式サイト</span>
-                    </a>
-                  )}
-                  {purchaseLinks.map((item) => (
-                    <a
-                      href={buildOutboundHref(
-                        item.url,
-                        game.code,
-                        item.category,
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70"
-                    >
-                      <span class="relative z-10">{item.label}</span>
-                    </a>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  {keywordItems.map((keyword) => (
+                    <span class="inline-flex max-w-full rounded-full border border-cyan-200/25 bg-cyan-300/12 px-3 py-1 text-[11px] font-semibold text-cyan-50">
+                      {keyword}
+                    </span>
                   ))}
                 </div>
               </section>
             )}
+
+            <div class="grid gap-3 md:grid-cols-2 md:items-start">
+              {youtubeEmbed && (
+                <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3 md:col-span-1">
+                  <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
+                    YOUTUBE
+                  </p>
+                  <div class="mt-2 aspect-video overflow-hidden rounded-lg border border-cyan-300/30 bg-black/20">
+                    <iframe
+                      class="h-full w-full"
+                      src={youtubeEmbed}
+                      title={`${game.name} movie`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </section>
+              )}
+
+              {hasActionButtons && (
+                <section class="rounded-xl border border-cyan-300/25 bg-black/15 p-3">
+                  <p class="text-[10px] font-black tracking-[0.16em] text-cyan-200">
+                    OFFICIAL & BUY
+                  </p>
+                  <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {game.officialSiteUrl && (
+                      <a
+                        href={buildOutboundHref(
+                          game.officialSiteUrl,
+                          game.code,
+                          "OFFICIAL",
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/55 bg-cyan-400/20 px-4 py-3 text-center text-sm font-bold text-cyan-50 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-100/80 hover:bg-cyan-400/30"
+                      >
+                        <span class="relative z-10">公式サイト</span>
+                      </a>
+                    )}
+                    {purchaseLinks.map((item) => (
+                      <a
+                        href={buildOutboundHref(
+                          item.url,
+                          game.code,
+                          item.category,
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="group relative inline-flex min-h-16 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900/45 px-4 py-3 text-center text-sm font-bold text-cyan-100 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/75 hover:bg-slate-800/70"
+                      >
+                        <span class="relative z-10">{item.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </div>
   );
 }
 
@@ -312,6 +320,7 @@ export default function FeatureDetailPage({ data }: PageProps<PageData>) {
       description={item.excerpt}
       showPageHeader={false}
       canonicalPath={`/features/${item.code}`}
+      contentClass="px-1 py-5 sm:px-6 lg:px-10"
       seoType="article"
       keywords={[
         "ゲーム特集",
@@ -338,15 +347,15 @@ export default function FeatureDetailPage({ data }: PageProps<PageData>) {
       }}
     >
       <article class="space-y-6">
-        <section class="rounded-2xl border border-cyan-300/20 bg-black/15 p-4 sm:p-6">
-          <div class="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950/40">
+        <section class="px-0 py-1 sm:rounded-2xl sm:border sm:border-cyan-300/20 sm:bg-black/15 sm:p-6">
+          <div class="mx-auto max-w-4xl overflow-hidden rounded-xl sm:rounded-2xl sm:border sm:border-cyan-300/20 sm:bg-slate-950/40">
             <img
               src={buildImageUrl(item.thumbnailImageKey, "features")}
               alt=""
               class="aspect-[16/9] max-h-[420px] w-full object-cover"
             />
           </div>
-          <div class="p-4 sm:p-6">
+          <div class="px-1 py-4 sm:p-6">
             <a
               href="/features"
               class="text-sm font-semibold text-cyan-200 hover:text-white"
@@ -378,7 +387,7 @@ export default function FeatureDetailPage({ data }: PageProps<PageData>) {
               <h2 class="section-title">Featured Games</h2>
               <p class="section-eyebrow mt-2">この特集で紹介するゲーム</p>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-14 sm:space-y-16">
               {games.map((game, index) => (
                 <FeatureGameCard game={game} index={index} />
               ))}

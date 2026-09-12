@@ -156,13 +156,13 @@ export default function SearchPage({ data }: PageProps<PageData>) {
       <PublicHeader />
 
       <main class="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-8 sm:py-8 lg:px-12">
-        <section class="rounded-3xl border border-cyan-300/20 bg-slate-950/60 px-5 py-5 text-cyan-50 shadow-2xl backdrop-blur-md sm:px-6">
-          <h1 class="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <section class="px-1 py-2 text-cyan-50 sm:px-2">
+          <p class="text-[10px] font-black tracking-[0.18em] text-cyan-200/80 sm:text-xs">
+            SEARCH
+          </p>
+          <h1 class="mt-1 text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
             ゲーム検索
           </h1>
-          <p class="mt-2 max-w-3xl text-sm text-cyan-50/80 sm:text-base">
-            メーカー、機種、ジャンル、キーワードで絞り込んでゲームを探せます。
-          </p>
         </section>
         <GameSearchExplorer
           machines={data.machines}

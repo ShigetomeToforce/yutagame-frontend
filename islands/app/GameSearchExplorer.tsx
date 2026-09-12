@@ -265,169 +265,171 @@ export default function GameSearchExplorer(props: Props) {
 
   const formatGenre = (game: GameItem) => game.genre?.name || "-";
 
+  const renderSearchForm = () => (
+    <section class="rounded-3xl public-glass p-4 sm:p-5">
+      <form onSubmit={onSubmit} class="space-y-4">
+        <div class="grid gap-3">
+          <div class="w-full md:w-1/2">
+            <label class="block">
+              <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                FREEWORD
+              </span>
+              <input
+                type="text"
+                value={filters.value.q}
+                onInput={(e) => {
+                  filters.value = {
+                    ...filters.value,
+                    q: (e.target as HTMLInputElement).value,
+                  };
+                }}
+                placeholder="タイトル・カナで検索"
+                class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-inner shadow-sky-100 placeholder:text-slate-400"
+              />
+            </label>
+          </div>
+
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <label class="block">
+              <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                MACHINE
+              </span>
+              <select
+                value={filters.value.machineCode}
+                onChange={(e) => {
+                  filters.value = {
+                    ...filters.value,
+                    machineCode: (e.target as HTMLSelectElement).value,
+                  };
+                }}
+                class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+              >
+                <option value="">機種</option>
+                {props.machines.map((m) => (
+                  <option value={m.code}>{m.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                GENRE
+              </span>
+              <select
+                value={filters.value.genreCode}
+                onChange={(e) => {
+                  filters.value = {
+                    ...filters.value,
+                    genreCode: (e.target as HTMLSelectElement).value,
+                  };
+                }}
+                class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+              >
+                <option value="">ジャンル</option>
+                {props.genres.map((g) => (
+                  <option value={g.code}>{g.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                MANUFACTURER
+              </span>
+              <select
+                value={filters.value.manufacturerCode}
+                onChange={(e) => {
+                  filters.value = {
+                    ...filters.value,
+                    manufacturerCode: (e.target as HTMLSelectElement).value,
+                  };
+                }}
+                class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+              >
+                <option value="">メーカー</option>
+                {props.manufacturers.map((m) => (
+                  <option value={m.code}>{m.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
+                KEYWORD
+              </span>
+              <select
+                value={filters.value.keywordCode}
+                onChange={(e) => {
+                  filters.value = {
+                    ...filters.value,
+                    keywordCode: (e.target as HTMLSelectElement).value,
+                  };
+                }}
+                class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
+              >
+                <option value="">キーワード</option>
+                {props.keywords.filter((k) => k.gameCount > 0).map((k) => (
+                  <option value={k.code}>{k.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-sky-200/25 pt-3">
+          <select
+            value={filters.value.sort}
+            onChange={(event) => {
+              filters.value = {
+                ...filters.value,
+                sort: (event.target as HTMLSelectElement).value,
+              };
+            }}
+            aria-label="並び順"
+            class="h-[42px] rounded-xl border border-sky-200 bg-white px-3 text-sm text-slate-800"
+          >
+            <option value="release_desc">リリース日の新しい順</option>
+            <option value="release_asc">リリース日の古い順</option>
+            <option value="kana_asc">五十音順</option>
+            <option value="price_asc">価格の安い順</option>
+            <option value="price_desc">価格の高い順</option>
+            <option value="rank_asc">ランキングの高い順</option>
+            <option value="rank_desc">ランキングの低い順</option>
+          </select>
+          <div class="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading.value}
+              class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
+            >
+              検索する
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                filters.value = {
+                  q: "",
+                  machineCode: "",
+                  genreCode: "",
+                  manufacturerCode: "",
+                  keywordCode: "",
+                  sort: "release_asc",
+                };
+                syncFiltersToUrl(filters.value);
+                void applySearch(1, false);
+              }}
+              class="rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50"
+            >
+              条件をクリア
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+  );
+
   return (
     <div class="space-y-6">
-      <section class="rounded-3xl public-glass p-4 sm:p-5">
-        <form onSubmit={onSubmit} class="space-y-4">
-          <div class="grid gap-3">
-            <div class="w-full md:w-1/2">
-              <label class="block">
-                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
-                  FREEWORD
-                </span>
-                <input
-                  type="text"
-                  value={filters.value.q}
-                  onInput={(e) => {
-                    filters.value = {
-                      ...filters.value,
-                      q: (e.target as HTMLInputElement).value,
-                    };
-                  }}
-                  placeholder="タイトル・カナで検索"
-                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-inner shadow-sky-100 placeholder:text-slate-400"
-                />
-              </label>
-            </div>
-
-            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <label class="block">
-                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
-                  MACHINE
-                </span>
-                <select
-                  value={filters.value.machineCode}
-                  onChange={(e) => {
-                    filters.value = {
-                      ...filters.value,
-                      machineCode: (e.target as HTMLSelectElement).value,
-                    };
-                  }}
-                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
-                >
-                  <option value="">機種</option>
-                  {props.machines.map((m) => (
-                    <option value={m.code}>{m.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label class="block">
-                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
-                  GENRE
-                </span>
-                <select
-                  value={filters.value.genreCode}
-                  onChange={(e) => {
-                    filters.value = {
-                      ...filters.value,
-                      genreCode: (e.target as HTMLSelectElement).value,
-                    };
-                  }}
-                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
-                >
-                  <option value="">ジャンル</option>
-                  {props.genres.map((g) => (
-                    <option value={g.code}>{g.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label class="block">
-                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
-                  MANUFACTURER
-                </span>
-                <select
-                  value={filters.value.manufacturerCode}
-                  onChange={(e) => {
-                    filters.value = {
-                      ...filters.value,
-                      manufacturerCode: (e.target as HTMLSelectElement).value,
-                    };
-                  }}
-                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
-                >
-                  <option value="">メーカー</option>
-                  {props.manufacturers.map((m) => (
-                    <option value={m.code}>{m.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label class="block">
-                <span class="mb-1.5 block text-[10px] font-black tracking-[0.18em] text-cyan-200/80">
-                  KEYWORD
-                </span>
-                <select
-                  value={filters.value.keywordCode}
-                  onChange={(e) => {
-                    filters.value = {
-                      ...filters.value,
-                      keywordCode: (e.target as HTMLSelectElement).value,
-                    };
-                  }}
-                  class="w-full rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm text-slate-800"
-                >
-                  <option value="">キーワード</option>
-                  {props.keywords.filter((k) => k.gameCount > 0).map((k) => (
-                    <option value={k.code}>{k.name}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-sky-200/25 pt-3">
-            <select
-              value={filters.value.sort}
-              onChange={(event) => {
-                filters.value = {
-                  ...filters.value,
-                  sort: (event.target as HTMLSelectElement).value,
-                };
-              }}
-              aria-label="並び順"
-              class="h-[42px] rounded-xl border border-sky-200 bg-white px-3 text-sm text-slate-800"
-            >
-              <option value="release_desc">リリース日の新しい順</option>
-              <option value="release_asc">リリース日の古い順</option>
-              <option value="kana_asc">五十音順</option>
-              <option value="price_asc">価格の安い順</option>
-              <option value="price_desc">価格の高い順</option>
-              <option value="rank_asc">ランキングの高い順</option>
-              <option value="rank_desc">ランキングの低い順</option>
-            </select>
-            <div class="flex gap-2">
-              <button
-                type="submit"
-                disabled={loading.value}
-                class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 disabled:opacity-60"
-              >
-                検索する
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  filters.value = {
-                    q: "",
-                    machineCode: "",
-                    genreCode: "",
-                    manufacturerCode: "",
-                    keywordCode: "",
-                    sort: "release_asc",
-                  };
-                  syncFiltersToUrl(filters.value);
-                  void applySearch(1, false);
-                }}
-                class="rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sky-50"
-              >
-                条件をクリア
-              </button>
-            </div>
-          </div>
-        </form>
-      </section>
-
       <PublicBannerSlider banners={props.searchAboveBanners} />
 
       <div class="flex items-center justify-between rounded-2xl border border-cyan-300/20 bg-black/20 px-4 py-3 text-cyan-50">
@@ -448,11 +450,11 @@ export default function GameSearchExplorer(props: Props) {
         </div>
       )}
 
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-9">
         {games.value.map((game) => {
           return (
-            <article
-              class="soft-rise group cursor-pointer overflow-hidden rounded-2xl border border-sky-200 bg-white transition duration-300 hover:border-emerald-300/70"
+            <div
+              class="soft-rise group w-full min-w-0 cursor-pointer"
               role="link"
               tabIndex={0}
               aria-label={`${game.name} の詳細ページへ`}
@@ -466,97 +468,99 @@ export default function GameSearchExplorer(props: Props) {
                 }
               }}
             >
-              <div class="game-card-titlebar px-4 py-3">
-                <h2 class="game-card-title truncate text-base font-black">
+              <h2 class="game-card-floating-title mb-1 line-clamp-2 min-h-[2.6rem] text-base font-black leading-tight">
+                <span class="hover:underline">
                   {game.name}
-                </h2>
-              </div>
+                </span>
+              </h2>
 
-              <div class="relative">
-                <img
-                  src={buildImageUrl(game.imageKey, "games")}
-                  alt={game.name}
-                  class="h-56 w-full object-cover"
-                />
-                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <RankingBadge rank={game.rank} />
-                <div
-                  class="absolute right-3 top-3 z-10"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <GameFavoriteButton code={game.code} variant="card" />
-                </div>
-              </div>
-
-              <div class="space-y-3 p-4 text-slate-700">
-                <p class="h-6 truncate text-xs leading-[1.1rem] text-slate-600">
-                  {game.catchCopy || ""}
-                </p>
-
-                <p class="text-[10px] font-black tracking-[0.14em] text-slate-500">
-                  GAME INFO
-                </p>
-
-                <div class="space-y-1.5 text-[12px] text-slate-700">
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>メーカー</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      <a
-                        href={buildFilterHref(
-                          "manufacturerCode",
-                          game.manufacturer?.code,
-                        )}
-                        onClick={(event) => event.stopPropagation()}
-                        class="block truncate hover:text-sky-700 hover:underline"
-                      >
-                        {game.manufacturer?.name || "-"}
-                      </a>
-                    </strong>
-                  </p>
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>機種</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      <a
-                        href={buildFilterHref(
-                          "machineCode",
-                          game.machine?.code,
-                        )}
-                        onClick={(event) => event.stopPropagation()}
-                        class="block truncate hover:text-sky-700 hover:underline"
-                      >
-                        {game.machine?.name || "-"}
-                      </a>
-                    </strong>
-                  </p>
-                  <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                    <span>ジャンル</span>
-                    <strong class="max-w-[62%] truncate text-right text-slate-800">
-                      <a
-                        href={buildFilterHref("genreCode", game.genre?.code)}
-                        onClick={(event) => event.stopPropagation()}
-                        class="block truncate hover:text-sky-700 hover:underline"
-                      >
-                        {formatGenre(game)}
-                      </a>
-                    </strong>
-                  </p>
-                  <div class="grid gap-1.5 sm:grid-cols-2">
-                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                      <span>価格</span>
-                      <strong class="max-w-[62%] truncate text-right text-slate-800">
-                        {formatPrice(game.listPrice)}
-                      </strong>
-                    </p>
-                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
-                      <span>発売日</span>
-                      <strong class="max-w-[72%] truncate text-right text-slate-800">
-                        {formatReleaseDate(game.releaseDate)}
-                      </strong>
-                    </p>
+              <article class="game-info-card w-full max-w-full overflow-hidden rounded-2xl border border-sky-200/70 transition duration-300 hover:border-emerald-300/70">
+                <div class="relative">
+                  <img
+                    src={buildImageUrl(game.imageKey, "games")}
+                    alt={game.name}
+                    class="h-56 w-full object-cover"
+                  />
+                  <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <RankingBadge rank={game.rank} />
+                  <div
+                    class="absolute right-3 top-3 z-10"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <GameFavoriteButton code={game.code} variant="card" />
                   </div>
                 </div>
-              </div>
-            </article>
+
+                <div class="space-y-3 p-4 text-slate-700">
+                  <p class="h-6 truncate text-xs leading-[1.1rem] text-slate-600">
+                    {game.catchCopy || ""}
+                  </p>
+
+                  <p class="text-[10px] font-black tracking-[0.14em] text-slate-500">
+                    GAME INFO
+                  </p>
+
+                  <div class="space-y-1.5 text-[12px] text-slate-700">
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>メーカー</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        <a
+                          href={buildFilterHref(
+                            "manufacturerCode",
+                            game.manufacturer?.code,
+                          )}
+                          onClick={(event) => event.stopPropagation()}
+                          class="block truncate hover:text-sky-700 hover:underline"
+                        >
+                          {game.manufacturer?.name || "-"}
+                        </a>
+                      </strong>
+                    </p>
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>機種</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        <a
+                          href={buildFilterHref(
+                            "machineCode",
+                            game.machine?.code,
+                          )}
+                          onClick={(event) => event.stopPropagation()}
+                          class="block truncate hover:text-sky-700 hover:underline"
+                        >
+                          {game.machine?.name || "-"}
+                        </a>
+                      </strong>
+                    </p>
+                    <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                      <span>ジャンル</span>
+                      <strong class="max-w-[62%] truncate text-right text-slate-800">
+                        <a
+                          href={buildFilterHref("genreCode", game.genre?.code)}
+                          onClick={(event) => event.stopPropagation()}
+                          class="block truncate hover:text-sky-700 hover:underline"
+                        >
+                          {formatGenre(game)}
+                        </a>
+                      </strong>
+                    </p>
+                    <div class="grid gap-1.5 sm:grid-cols-2">
+                      <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                        <span>価格</span>
+                        <strong class="max-w-[62%] truncate text-right text-slate-800">
+                          {formatPrice(game.listPrice)}
+                        </strong>
+                      </p>
+                      <p class="flex items-center justify-between gap-2 rounded-lg border border-sky-200 bg-sky-50/75 px-2 py-1 leading-tight">
+                        <span>発売日</span>
+                        <strong class="max-w-[72%] truncate text-right text-slate-800">
+                          {formatReleaseDate(game.releaseDate)}
+                        </strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
           );
         })}
       </div>
@@ -579,6 +583,8 @@ export default function GameSearchExplorer(props: Props) {
           </button>
         </div>
       )}
+
+      {renderSearchForm()}
 
       {!loading.value && !error.value && renderKeywordWave()}
     </div>
